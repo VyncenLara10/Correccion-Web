@@ -1,0 +1,56 @@
+# Ignore everything unnecessary for Docker build context
+
+# === GENERAL ===
+.git
+.gitignore
+README.md
+LICENSE
+*.log
+*.bak
+*.tmp
+*.zip
+*.tar.gz
+*.rar
+*.7z
+**/__pycache__/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.vscode/
+**/.idea/
+**/.DS_Store
+**/Thumbs.db
+**/.env
+**/.env.*
+
+# === FRONTEND ===
+frontend/node_modules
+frontend/.next
+frontend/out
+frontend/.turbo
+frontend/.vercel
+frontend/coverage
+frontend/.eslintcache
+
+# === BACKEND ===
+backend/__pycache__/
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/venv/
+backend/env/
+backend/logs/
+backend/media/
+backend/staticfiles/
+backend/db.sqlite3
+backend/.coverage
+backend/*.pyc
+
+# === DATABASE / DATA ===
+postgres_data
+db_data
+data
+tmp
+
+# === TEST / DOCS ===
+tests/
+docs/

@@ -1,0 +1,104 @@
+# === GENERAL ===
+*.log
+*.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+*.sqlite3
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.bak
+*.swp
+
+# === NODE / NEXT.JS (Frontend) ===
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/.env.production
+frontend/.vercel/
+frontend/.turbo/
+frontend/dist/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.eslintcache
+frontend/coverage/
+frontend/.DS_Store
+
+# === PYTHON / DJANGO (Backend) ===
+backend/__pycache__/
+backend/**/*.pyc
+backend/db.sqlite3
+backend/staticfiles/
+backend/media/
+backend/.env
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/.coverage
+backend/htmlcov/
+backend/venv/
+backend/env/
+backend/.env.*
+backend/.vscode/
+backend/.ruff_cache/
+backend/.idea/
+backend/logs/
+backend/migrations/__pycache__/
+backend/*/migrations/__pycache__/
+
+# === DOCKER ===
+*.pid
+*.tar
+*.bak
+docker/*.log
+**/tmp/
+**/cache/
+**/logs/
+
+# === PYTEST / COVERAGE ===
+.tox/
+.coverage
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# === POSTGRES / DATABASES ===
+postgres_data/
+data/
+db_data/
+
+# === BUILDS / DIST ===
+build/
+dist/
+*.egg-info/
+*.spec
+
+# === ENVIRONMENTS ===
+.env
+.env.local
+.env.production
+.env.development
+secrets.json
+
+# === SYSTEM FILES ===
+*.db
+*.pid
+*.seed
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# === DOCS / REPORTS ===
+/docs/*.pdf
+/docs/*.docx
+/docs/*.xlsx
+/docs/*.pptx
+.DS_Store

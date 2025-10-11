@@ -12,6 +12,8 @@ Thumbs.db
 .idea/
 *.bak
 *.swp
+*:Zone.Identifier
+
 
 # === NODE / NEXT.JS (Frontend) ===
 frontend/node_modules/

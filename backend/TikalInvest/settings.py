@@ -10,7 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+from datetime import timedelta
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,6 +42,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "rest_framework",
+    "corsheaders",
+    "drf_yasg",
+    "apps.users",
+    "apps.stocks",
+    "apps.transactions",
+    "apps.reports"
 ]
 
 MIDDLEWARE = [
@@ -69,14 +81,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'TikalInvest.wsgi.application'
 
+AUTH_USER_MODEL = "users.User"
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("POSTGRES_DB"),
+        "USER": os.getenv("POSTGRES_USER"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+        "HOST": os.getenv("POSTGRES_HOST"),
+        "PORT": os.getenv("POSTGRES_PORT"),
     }
 }
 
@@ -99,6 +116,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Email cofigs
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True") == "True"
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

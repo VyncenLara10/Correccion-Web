@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Card, CardContent } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
+import { Card, CardContent } from '@/components/ui/card2';
+import {Button} from '@/components/ui/button2';
 import { formatCurrency, getChangeColor, getChangeBgColor } from '@/lib/utils';
 import { Search, Filter, TrendingUp, TrendingDown, Star, Eye } from 'lucide-react';
 import api from '@/lib/api';

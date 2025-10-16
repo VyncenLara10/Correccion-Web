@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuthStore } from '@/store/authStore';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { useAuth } from '@/hooks/useAuth';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card2';
 import { formatCurrency, formatPercent, getChangeColor, getChangeBgColor } from '@/lib/utils';
 import { TrendingUp, TrendingDown, Wallet, Briefcase, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react';
 import api from '@/lib/api';
@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 
 export default function DashboardPage() {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuth();
   const [stats, setStats] = useState<any>(null);
   const [portfolio, setPortfolio] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);

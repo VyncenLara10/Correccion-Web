@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card2';
+import {Button} from '@/components/ui/button2';
 import { formatDateTime } from '@/lib/utils';
 import { FileText, Download, Calendar, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import api from '@/lib/api';

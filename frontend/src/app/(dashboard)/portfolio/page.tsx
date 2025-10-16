@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card2';
+import {Button} from '@/components/ui/button2';
 import { formatCurrency, formatPercent, getChangeColor } from '@/lib/utils';
 import { Briefcase, TrendingUp, TrendingDown, DollarSign, PieChart, ArrowRight } from 'lucide-react';
 import api from '@/lib/api';

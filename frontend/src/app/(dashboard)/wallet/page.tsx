@@ -2,17 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card2';
+import {Button }from '@/components/ui/button2';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { Wallet, ArrowDownLeft, ArrowUpRight, History, CreditCard, Building2, AlertCircle } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function WalletPage() {
   const searchParams = useSearchParams();
-  const { user, refreshUser } = useAuthStore();
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<'deposit' | 'withdrawal' | 'history'>('deposit');
   const [transactions, setTransactions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);

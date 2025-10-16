@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card2';
+import { Button } from '@/components/ui/button2';
 import { formatCurrency, getChangeColor } from '@/lib/utils';
 import { TrendingUp, TrendingDown, AlertCircle, CheckCircle2, Info } from 'lucide-react';
 import api from '@/lib/api';

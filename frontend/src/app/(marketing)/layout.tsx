@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button2';
 import { TrendingUp, Shield, Zap, BarChart3 } from 'lucide-react';
 
 export default function HomePage() {

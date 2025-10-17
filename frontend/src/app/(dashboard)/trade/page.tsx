@@ -8,12 +8,12 @@ import { formatCurrency, getChangeColor } from '@/lib/utils';
 import { TrendingUp, TrendingDown, AlertCircle, CheckCircle2, Info } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function TradePage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { user, refreshUser } = useAuthStore();
+  const { user, logout } = useAuth();
   const [stock, setStock] = useState<any>(null);
   const [quantity, setQuantity] = useState(1);
   const [type, setType] = useState<'buy' | 'sell'>('buy');

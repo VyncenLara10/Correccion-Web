@@ -48,7 +48,12 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.stocks",
     "apps.transactions",
-    "apps.reports"
+    "apps.reports",
+    "apps.admin_api",
+    "apps.wallet",
+    "apps.dashboard",
+    "apps.watchlist",
+    "apps.referrals"
 ]
 
 MIDDLEWARE = [
@@ -135,6 +140,20 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
+
+
+AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN")
+API_IDENTIFIER = os.environ.get("API_IDENTIFIER")
+ALGORITHMS = ["RS256"]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'TikalInvest.auth.Auth0JWTAuthentication',
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
+}
 
 
 # Static files (CSS, JavaScript, Images)

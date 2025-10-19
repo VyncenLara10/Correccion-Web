@@ -2,6 +2,7 @@ from rest_framework import generics, filters, permissions
 from .models import Stock
 from .serializers import StockSerializer
 from apps.users.permissions import IsAdminUser
+from TikalInvest.auth import IsAdmin
 
 class StockListView(generics.ListAPIView):
     queryset = Stock.objects.all()
@@ -19,9 +20,37 @@ class StockDetailView(generics.RetrieveAPIView):
 class StockCreateUpdateView(generics.CreateAPIView, generics.UpdateAPIView):
     queryset = Stock.objects.all()
     serializer_class = StockSerializer
-    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdmin]
 
 class StockDeleteView(generics.DestroyAPIView):
     queryset = Stock.objects.all()
     serializer_class = StockSerializer
-    permission_classes = [permissions.IsAuthenticated, IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated, IsAdmin]
+
+class StockCategoriesView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        categories = Stock.objects.values_list("category", flat=True).distinct()
+        return Response(list(categories))
+
+class StockGainersView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        stocks = Stock.objects.order_by("-change_percent")[:10]
+        return Response(StockSerializer(stocks, many=True).data)
+
+class StockLosersView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        stocks = Stock.objects.order_by("change_percent")[:10]
+        return Response(StockSerializer(stocks, many=True).data)
+
+class StockTrendingView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        stocks = Stock.objects.order_by("-volume")[:10]
+        return Response(StockSerializer(stocks, many=True).data)

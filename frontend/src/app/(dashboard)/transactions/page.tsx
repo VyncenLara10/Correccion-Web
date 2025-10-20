@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card2';
 import { formatCurrency, formatDateTime, getChangeColor } from '@/lib/utils';
 import { ArrowDownRight, ArrowUpRight, Filter, Calendar, Download } from 'lucide-react';
-import api from '@/lib/api';
+import { getTransactions } from '@/lib/api';
 import { toast } from 'sonner';
 
 export default function TransactionsPage() {
@@ -26,7 +26,7 @@ export default function TransactionsPage() {
   const loadTransactions = async () => {
     setIsLoading(true);
     try {
-      const data = await api.getTransactions({ limit: 100 });
+      const data = await getTransactions({ limit: 100 });
       setTransactions(data.results || data);
     } catch (error) {
       toast.error('Error al cargar transacciones');

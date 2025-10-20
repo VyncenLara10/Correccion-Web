@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card2'
 import { Button } from '@/components/ui/button2';
 import { formatCurrency, formatNumber, getChangeColor } from '@/lib/utils';
 import { ArrowLeft, TrendingUp, TrendingDown, Star, ShoppingCart, DollarSign } from 'lucide-react';
-import api from '@/lib/api';
+import {getStocks, getStockHistory, toggleWatchlist as apiToggleWatchlist} from '@/lib/api';
 import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -25,7 +25,7 @@ export default function StockDetailPage({ params }: { params: { symbol: string }
   const loadStockData = async () => {
     setIsLoading(true);
     try {
-      const stocks = await api.getStocks({ query: params.symbol });
+      const stocks = await getStocks({ query: params.symbol });
       const stockData = stocks.results?.[0] || stocks[0];
       
       if (!stockData) {
@@ -37,7 +37,7 @@ export default function StockDetailPage({ params }: { params: { symbol: string }
       setStock(stockData);
       setInWatchlist(stockData.is_in_watchlist);
 
-      const history = await api.getStockHistory(stockData.id, '1d', 30);
+      const history = await getStockHistory(stockData.id, '1d');
       setPriceHistory(history.map((h: any) => ({
         date: new Date(h.timestamp).toLocaleDateString(),
         price: parseFloat(h.close_price),
@@ -50,10 +50,10 @@ export default function StockDetailPage({ params }: { params: { symbol: string }
     }
   };
 
-  const toggleWatchlist = async () => {
+  const handleToggleWatchlist = async () => {
     if (!stock) return;
     try {
-      await api.toggleWatchlist(stock.id);
+      await apiToggleWatchlist(stock.id);
       setInWatchlist(!inWatchlist);
       toast.success(inWatchlist ? 'Removido de favoritos' : 'Agregado a favoritos');
     } catch (error) {
@@ -99,7 +99,7 @@ export default function StockDetailPage({ params }: { params: { symbol: string }
 
         <div className="flex items-center space-x-3">
           <button
-            onClick={toggleWatchlist}
+            onClick={handleToggleWatchlist}
             className="p-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition"
           >
             <Star className={`w-6 h-6 ${inWatchlist ? 'fill-primary-500 text-primary-500' : 'text-gray-400'}`} />
@@ -133,7 +133,7 @@ export default function StockDetailPage({ params }: { params: { symbol: string }
             </div>
             {!stock.is_market_open && (
               <p className="text-sm text-yellow-500">
-                ⏰ Mercado cerrado - Precio al cierre
+                Mercado cerrado - Precio al cierre
               </p>
             )}
           </CardContent>

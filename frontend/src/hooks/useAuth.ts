@@ -1,120 +1,202 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import * as api from '@/lib/api';
-import type { User, LoginCredentials, RegisterData } from '@/lib/api';
+'use client';
 
-interface AuthState {
-  user: User | null;
-  token: string | null;
-  isLoading: boolean;
-  error: string | null;
-  
-  // Acciones
-  login: (credentials: LoginCredentials) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
-  logout: () => Promise<void>;
-  fetchCurrentUser: () => Promise<void>;
-  updateUser: (data: Partial<User>) => void;
-  clearError: () => void;
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+
+// ============================================
+// TIPOS
+// ============================================
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  balance?: number;
+  phone?: string;
+  address?: string;
+  country?: string;
+  full_name?: string;
+  avatar?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
-export const useAuth = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      user: null,
-      token: null,
-      isLoading: false,
-      error: null,
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
 
-      login: async (credentials: LoginCredentials) => {
-        set({ isLoading: true, error: null });
-        try {
-          // CONECTA CON: POST /api/auth/login
-          const data = await api.login(credentials);
-          
-          if (data.token) {
-            localStorage.setItem('token', data.token);
-            set({ 
-              user: data.user, 
-              token: data.token, 
-              isLoading: false 
-            });
-          }
-        } catch (error: any) {
-          const errorMessage = error.response?.data?.message || 'Error al iniciar sesión';
-          set({ error: errorMessage, isLoading: false });
-          throw error;
-        }
-      },
+export interface RegisterData {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
 
-      register: async (data: RegisterData) => {
-        set({ isLoading: true, error: null });
-        try {
-          // CONECTA CON: POST /api/auth/register
-          const response = await api.register(data);
-          
-          // Después de registrar, hacer login automáticamente
-          if (response.token) {
-            localStorage.setItem('token', response.token);
-            set({ 
-              user: response.user, 
-              token: response.token, 
-              isLoading: false 
-            });
-          } else {
-            // Si no viene token, hacer login manual
-            await get().login({ email: data.email, password: data.password });
-          }
-        } catch (error: any) {
-          const errorMessage = error.response?.data?.message || 'Error al registrarse';
-          set({ error: errorMessage, isLoading: false });
-          throw error;
-        }
-      },
+// ============================================
+// CONFIGURACIÓN API
+// ============================================
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
-      logout: async () => {
-        try {
-          // CONECTA CON: POST /api/auth/logout
-          await api.logout();
-        } catch (error) {
-          console.error('Error al cerrar sesión:', error);
-        } finally {
-          localStorage.removeItem('token');
-          set({ user: null, token: null });
-        }
-      },
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  withCredentials: true, // Para cookies
+});
 
-      fetchCurrentUser: async () => {
-        set({ isLoading: true, error: null });
-        try {
-          // CONECTA CON: GET /api/auth/me
-          const data = await api.getCurrentUser();
-          set({ user: data.user, isLoading: false });
-        } catch (error: any) {
-          console.error('Error al obtener usuario:', error);
-          set({ error: 'No se pudo cargar el usuario', isLoading: false });
-          // Si falla, hacer logout
-          get().logout();
-        }
-      },
+// Interceptor para agregar token
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
-      updateUser: (data: Partial<User>) => {
-        const currentUser = get().user;
-        if (currentUser) {
-          set({ user: { ...currentUser, ...data } });
-        }
-      },
+// ============================================
+// HOOK useAuth
+// ============================================
+export function useAuth() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-      clearError: () => {
-        set({ error: null });
-      },
-    }),
-    {
-      name: 'auth-storage',
-      partialize: (state) => ({ 
-        token: state.token,
-        user: state.user 
-      }),
+  // Verificar autenticación al cargar
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setUser(null);
+        setIsAuthenticated(false);
+        return;
+      }
+
+      // CONECTA CON: GET /api/auth/me
+      const response = await api.get('/auth/me');
+      setUser(response.data.user);
+      setIsAuthenticated(true);
+    } catch (err) {
+      console.error('Error verificando autenticación:', err);
+      localStorage.removeItem('token');
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
     }
-  )
-);
+  };
+
+  const login = async (credentials: LoginCredentials) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // CONECTA CON: POST /api/auth/login
+      const response = await api.post('/auth/login', credentials);
+      
+      const { token, user } = response.data;
+      
+      localStorage.setItem('token', token);
+      setUser(user);
+      setIsAuthenticated(true);
+      
+      return { success: true };
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Error al iniciar sesión';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (data: RegisterData) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (data.password !== data.confirmPassword) {
+        setError('Las contraseñas no coinciden');
+        return { success: false, error: 'Las contraseñas no coinciden' };
+      }
+
+      // CONECTA CON: POST /api/auth/register
+      const response = await api.post('/auth/register', {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      });
+      
+      const { token, user } = response.data;
+      
+      localStorage.setItem('token', token);
+      setUser(user);
+      setIsAuthenticated(true);
+      
+      return { success: true };
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Error al registrarse';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      // CONECTA CON: POST /api/auth/logout
+      await api.post('/auth/logout');
+    } catch (err) {
+      console.error('Error al cerrar sesión:', err);
+    } finally {
+      localStorage.removeItem('token');
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+  };
+
+  const updateUser = (userData: Partial<User>) => {
+    if (user) {
+      setUser({ ...user, ...userData });
+    }
+  };
+
+  const refreshUser = async () => {
+    try {
+      setLoading(true);
+      // CONECTA CON: GET /api/auth/me
+      const response = await api.get('/auth/me');
+      setUser(response.data.user);
+      setIsAuthenticated(true);
+    } catch (err) {
+      console.error('Error refrescando usuario:', err);
+      localStorage.removeItem('token');
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    user,
+    loading,
+    error,
+    isAuthenticated,
+    login,
+    register,
+    logout,
+    updateUser,
+    checkAuth,
+    refreshUser,
+  };
+}

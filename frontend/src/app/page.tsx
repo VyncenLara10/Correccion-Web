@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 export default function LandingPage() {
   const [stats, setStats] = useState({
     users: '10,000+',
-    transactions: '$50M+',
+    transactions: 'Q50M+',
     countries: '25+',
   });
 
@@ -55,7 +55,7 @@ export default function LandingPage() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-white">
               Invierte en el Futuro
             </h1>
             <p className="text-xl md:text-2xl text-gray-400 mb-10 max-w-3xl mx-auto">
@@ -126,7 +126,7 @@ export default function LandingPage() {
               {
                 icon: Users,
                 title: 'Programa de Referidos',
-                description: 'Gana $5 por cada amigo que se registre con tu código',
+                description: 'Gana Q.5 por cada amigo que se registre con tu código',
               },
             ].map((feature, index) => (
               <motion.div
@@ -218,24 +218,13 @@ export default function LandingPage() {
               <h4 className="font-semibold mb-4">Producto</h4>
               <ul className="space-y-2 text-gray-400">
                 <li><Link href="/market" className="hover:text-primary-500">Mercado</Link></li>
-                <li><Link href="/pricing" className="hover:text-primary-500">Precios</Link></li>
-                <li><Link href="/features" className="hover:text-primary-500">Características</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Compañía</h4>
               <ul className="space-y-2 text-gray-400">
                 <li><Link href="/about" className="hover:text-primary-500">Nosotros</Link></li>
-                <li><Link href="/careers" className="hover:text-primary-500">Carreras</Link></li>
                 <li><Link href="/contact" className="hover:text-primary-500">Contacto</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link href="/terms" className="hover:text-primary-500">Términos</Link></li>
-                <li><Link href="/privacy" className="hover:text-primary-500">Privacidad</Link></li>
-                <li><Link href="/security" className="hover:text-primary-500">Seguridad</Link></li>
               </ul>
             </div>
           </div>

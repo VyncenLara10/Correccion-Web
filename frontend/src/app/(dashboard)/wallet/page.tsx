@@ -6,16 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card2'
 import {Button }from '@/components/ui/button2';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
 import { Wallet, ArrowDownLeft, ArrowUpRight, History, CreditCard, Building2, AlertCircle } from 'lucide-react';
-import api from '@/lib/api';
+import {getWalletTransactions, withdrawal, deposit} from '@/lib/api';
 import { toast } from 'sonner';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth} from '@/hooks/useAuth';
 
 export default function WalletPage() {
   const searchParams = useSearchParams();
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'deposit' | 'withdrawal' | 'history'>('deposit');
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setIsLoading] = useState(false);
 
   // Form states
   const [amount, setAmount] = useState('');
@@ -23,16 +23,16 @@ export default function WalletPage() {
   const [accountNumber, setAccountNumber] = useState('');
 
   useEffect(() => {
-    const action = searchParams.get('action');
-    if (action === 'deposit' || action === 'withdrawal') {
-      setActiveTab(action);
-    }
-    loadTransactions();
-  }, [searchParams]);
+  const action = searchParams?.get('action');
+  if (action === 'deposit' || action === 'withdrawal') {
+    setActiveTab(action);
+  }
+  loadTransactions();
+}, [searchParams]);
 
   const loadTransactions = async () => {
     try {
-      const data = await api.getWalletTransactions({ limit: 10 });
+      const data = await getWalletTransactions({ limit: 10 });
       setTransactions(data.results || data);
     } catch (error) {
       console.error('Error loading transactions:', error);
@@ -59,7 +59,7 @@ export default function WalletPage() {
 
     setIsLoading(true);
     try {
-      await api.deposit({
+      await deposit({
         amount: numAmount,
         bank_name: bankName,
         account_number: accountNumber,
@@ -93,7 +93,7 @@ export default function WalletPage() {
     const fee = numAmount * 0.02;
     const total = numAmount + fee;
 
-    if (user && total > user.balance) {
+   if (user?.balance !== undefined && total > user.balance) {
       toast.error(`Saldo insuficiente. Necesitas ${formatCurrency(total)} (incluye comisión de ${formatCurrency(fee)})`);
       return;
     }
@@ -105,7 +105,7 @@ export default function WalletPage() {
 
     setIsLoading(true);
     try {
-      await api.withdrawal({
+      await withdrawal({
         amount: numAmount,
         bank_name: bankName,
         account_number: accountNumber,
@@ -292,14 +292,35 @@ export default function WalletPage() {
 
                 {/* Submit Button */}
                 <Button
-                  onClick={activeTab === 'deposit' ? handleDeposit : handleWithdrawal}
-                  isLoading={isLoading}
-                  disabled={!amount || !bankName || (activeTab === 'withdrawal' && !accountNumber)}
-                  className="w-full py-4 text-lg"
-                  variant={activeTab === 'deposit' ? 'primary' : 'danger'}
-                >
-                  {activeTab === 'deposit' ? 'Depositar' : 'Retirar'} Fondos
-                </Button>
+  onClick={activeTab === 'deposit' ? handleDeposit : handleWithdrawal}
+  disabled={loading || !amount || !bankName || (activeTab === 'withdrawal' && !accountNumber)}
+  className="w-full py-4 text-lg flex items-center justify-center gap-2"
+>
+  {loading && (
+    <svg
+      className="animate-spin h-5 w-5 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l3 3-3 3v-4a8 8 0 01-8-8z"
+      ></path>
+    </svg>
+  )}
+  {activeTab === 'deposit' ? 'Depositar' : 'Retirar'} Fondos
+</Button>
+
               </div>
             )}
 

@@ -3,11 +3,16 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card2';
-import {Button} from '@/components/ui/button2';
-import { formatCurrency, getChangeColor, getChangeBgColor } from '@/lib/utils';
+import { Button } from '@/components/ui/button2';
 import { Search, Filter, TrendingUp, TrendingDown, Star, Eye } from 'lucide-react';
-import api from '@/lib/api';
-import { toast } from 'sonner';
+import { 
+  getStocks, 
+  getStockCategories, 
+  getGainers, 
+  getLosers,
+  getTrendingStocks, 
+  toggleWatchlist as apiToggleWatchlist
+} from '@/lib/api';
 
 export default function MarketPage() {
   const [stocks, setStocks] = useState<any[]>([]);
@@ -31,13 +36,13 @@ export default function MarketPage() {
     setIsLoading(true);
     try {
       const [stocksData, categoriesData] = await Promise.all([
-        api.getStocks(),
-        api.getStockCategories(),
+        getStocks(),
+        getStockCategories(),
       ]);
-      setStocks(stocksData.results || stocksData);
-      setCategories(categoriesData.results || categoriesData);
+      setStocks(stocksData.results || stocksData.stocks || stocksData);
+      setCategories(categoriesData.results || categoriesData.categories || categoriesData);
     } catch (error) {
-      toast.error('Error al cargar el mercado');
+      console.error('Error al cargar el mercado:', error);
     } finally {
       setIsLoading(false);
     }
@@ -47,41 +52,40 @@ export default function MarketPage() {
     try {
       let data;
       if (activeTab === 'gainers') {
-        data = await api.getGainers();
+        data = await getGainers();
       } else if (activeTab === 'losers') {
-        data = await api.getLosers();
+        data = await getLosers();
       } else if (activeTab === 'trending') {
-        data = await api.getTrendingStocks();
+        data = await getTrendingStocks();
       } else {
-        data = await api.getStocks({
+        data = await getStocks({
           query: searchQuery,
           category: selectedCategory,
           sort_by: sortBy,
           sort_order: sortOrder,
         });
       }
-      setStocks(data.results || data);
+      setStocks(data.results || data.stocks || data);
     } catch (error) {
       console.error('Error filtering stocks:', error);
     }
   };
 
-  const toggleWatchlist = async (stockId: string, event: React.MouseEvent) => {
+  const handleToggleWatchlist = async (stockId: string, event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
     try {
-      await api.toggleWatchlist(stockId);
-      toast.success('Lista de seguimiento actualizada');
-      filterStocks();
+      await apiToggleWatchlist(stockId);
+      await filterStocks(); 
     } catch (error) {
-      toast.error('Error al actualizar lista de seguimiento');
+      console.error('Error al actualizar lista de seguimiento:', error);
     }
   };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -95,7 +99,7 @@ export default function MarketPage() {
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="bg-white/5 border-white/10">
         <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Search */}
@@ -106,7 +110,7 @@ export default function MarketPage() {
                 placeholder="Buscar por símbolo o nombre..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-900/50 border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full bg-gray-900/50 border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
               />
             </div>
 
@@ -116,7 +120,7 @@ export default function MarketPage() {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full bg-gray-900/50 border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full bg-gray-900/50 border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
                 <option value="">Todas las categorías</option>
                 {categories.map((cat) => (
@@ -132,7 +136,7 @@ export default function MarketPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="flex-1 bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="flex-1 bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
               >
                 <option value="symbol">Símbolo</option>
                 <option value="name">Nombre</option>
@@ -164,7 +168,7 @@ export default function MarketPage() {
             onClick={() => setActiveTab(tab.key)}
             className={`flex items-center px-4 py-2 rounded-lg font-medium transition whitespace-nowrap ${
               activeTab === tab.key
-                ? 'bg-primary-500 text-white'
+                ? 'bg-cyan-500 text-white'
                 : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
             }`}
           >
@@ -176,7 +180,7 @@ export default function MarketPage() {
 
       {/* Stocks Grid */}
       {stocks.length === 0 ? (
-        <Card>
+        <Card className="bg-white/5 border-white/10">
           <CardContent className="py-12 text-center">
             <Search className="w-16 h-16 text-gray-600 mx-auto mb-4" />
             <p className="text-gray-400">No se encontraron acciones</p>
@@ -185,8 +189,8 @@ export default function MarketPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {stocks.map((stock) => (
-            <Link key={stock.id} href={`/dashboard/market/${stock.symbol}`}>
-              <Card className="hover:border-primary-500 transition group cursor-pointer">
+            <Link key={stock.id} href={`/market/${stock.symbol}`}>
+              <Card className="bg-white/5 border-white/10 hover:border-cyan-500 transition group cursor-pointer">
                 <CardContent className="pt-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
@@ -201,30 +205,34 @@ export default function MarketPage() {
                       <p className="text-sm text-gray-400 line-clamp-1">{stock.name}</p>
                     </div>
                     <button
-                      onClick={(e) => toggleWatchlist(stock.id, e)}
-                      className="text-gray-400 hover:text-primary-500 transition"
+                      onClick={(e) => handleToggleWatchlist(stock.id, e)}
+                      className="text-gray-400 hover:text-cyan-400 transition"
                     >
-                      <Star className={`w-5 h-5 ${stock.is_in_watchlist ? 'fill-primary-500 text-primary-500' : ''}`} />
+                      <Star className={`w-5 h-5 ${stock.is_in_watchlist ? 'fill-cyan-400 text-cyan-400' : ''}`} />
                     </button>
                   </div>
 
                   <div className="mb-4">
                     <div className="text-2xl font-bold text-white mb-1">
-                      {formatCurrency(stock.current_price)}
+                      ${(stock.current_price || stock.price)?.toFixed(2)}
                     </div>
-                    <div className={`flex items-center text-sm ${getChangeColor(stock.change_percent)}`}>
-                      {stock.change_percent >= 0 ? (
+                    <div className={`flex items-center text-sm ${
+                      (stock.change_percent || 0) >= 0 ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {(stock.change_percent || 0) >= 0 ? (
                         <TrendingUp className="w-4 h-4 mr-1" />
                       ) : (
                         <TrendingDown className="w-4 h-4 mr-1" />
                       )}
-                      {stock.change_percent >= 0 ? '+' : ''}
-                      {formatCurrency(stock.change_amount)} ({stock.change_percent.toFixed(2)}%)
+                      {(stock.change_percent || 0) >= 0 ? '+' : ''}
+                      ${(stock.change_amount || 0)?.toFixed(2)} ({(stock.change_percent || 0)?.toFixed(2)}%)
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-4 border-t border-gray-700">
-                    <span className="text-xs text-gray-400">Vol: {stock.volume.toLocaleString()}</span>
+                    <span className="text-xs text-gray-400">
+                      Vol: {(stock.volume || 0)?.toLocaleString()}
+                    </span>
                     <div className="flex space-x-2">
                       <Button size="sm" variant="outline" className="text-xs">
                         <Eye className="w-3 h-3 mr-1" />
@@ -232,11 +240,11 @@ export default function MarketPage() {
                       </Button>
                       <Button 
                         size="sm" 
-                        className="text-xs"
+                        className="text-xs bg-gradient-to-r from-cyan-500 to-blue-500"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          window.location.href = `/dashboard/trade?stock=${stock.id}&type=buy`;
+                          window.location.href = `/trade?stock=${stock.id}&type=buy`;
                         }}
                       >
                         Comprar

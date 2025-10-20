@@ -1,78 +1,42 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card2';
-import {Button} from '@/components/ui/button2';
-import { formatCurrency } from '@/lib/utils';
-import { TrendingUp, Search, Plus, Edit, Trash2, Power, PowerOff } from 'lucide-react';
-import api from '@/lib/api';
-import { toast } from 'sonner';
+import { TrendingUp, Edit, Trash2, Plus, Power, PowerOff } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card2';
+import { Button } from '@/components/ui/button2';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/bagde';
+import { getStocks, toggleStockActive, deleteStock } from '@/lib/api';
 
 export default function AdminStocksPage() {
   const [stocks, setStocks] = useState<any[]>([]);
-  const [filteredStocks, setFilteredStocks] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadStocks();
   }, []);
 
-  useEffect(() => {
-    filterStocks();
-  }, [searchQuery, stocks]);
-
   const loadStocks = async () => {
     setIsLoading(true);
     try {
-      const data = await api.getStocks();
-      setStocks(data.results || data);
+      const data = await getStocks();
+      setStocks(data.stocks || []);
     } catch (error) {
-      toast.error('Error al cargar acciones');
+      console.error('Error al cargar acciones:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const filterStocks = () => {
-    let filtered = [...stocks];
-
-    if (searchQuery) {
-      filtered = filtered.filter(s =>
-        s.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    setFilteredStocks(filtered);
-  };
-
-  const toggleTradable = async (stockId: string, currentStatus: boolean) => {
+  const handleToggleActive = async (stockId: string) => {
     try {
-      // await api.updateStock(stockId, { is_tradable: !currentStatus });
-      toast.success(
-        !currentStatus 
-          ? 'Acción habilitada para trading' 
-          : 'Acción deshabilitada para trading'
-      );
-      loadStocks();
+      await toggleStockActive(stockId);
+      await loadStocks();
+      alert('Estado actualizado');
     } catch (error) {
-      toast.error('Error al actualizar el estado');
-    }
-  };
-
-  const toggleActive = async (stockId: string, currentStatus: boolean) => {
-    try {
-      // await api.updateStock(stockId, { is_active: !currentStatus });
-      toast.success(
-        !currentStatus 
-          ? 'Acción activada' 
-          : 'Acción desactivada'
-      );
-      loadStocks();
-    } catch (error) {
-      toast.error('Error al actualizar el estado');
+      console.error('Error:', error);
+      alert('Error al actualizar estado');
     }
   };
 
@@ -80,234 +44,191 @@ export default function AdminStocksPage() {
     if (!confirm('¿Estás seguro de eliminar esta acción?')) return;
     
     try {
-      // await api.deleteStock(stockId);
-      toast.success('Acción eliminada');
-      loadStocks();
+      await deleteStock(stockId);
+      await loadStocks();
+      alert('Acción eliminada');
     } catch (error) {
-      toast.error('Error al eliminar la acción');
+      console.error('Error:', error);
+      alert('Error al eliminar acción');
     }
   };
 
+  const filteredStocks = stocks.filter(stock =>
+    stock.symbol?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    stock.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+      <div className="text-white text-center py-20">
+        <p className="text-xl">Cargando acciones...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div>
+      <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Gestión de Acciones</h1>
-          <p className="text-gray-400">Administra el catálogo de acciones disponibles</p>
+          <p className="text-gray-400">Administra las acciones disponibles en la plataforma</p>
         </div>
-        <Button onClick={() => setShowAddModal(true)}>
-          <Plus className="w-5 h-5 mr-2" />
-          Agregar Acción
+        <Button className="bg-gradient-to-r from-cyan-500 to-blue-500">
+          <Plus className="w-4 h-4 mr-2" />
+          Nueva Acción
         </Button>
       </div>
 
+      {/* Search */}
+      <Card className="bg-white/5 border-white/10 mb-6">
+        <CardContent className="p-4">
+          <Input
+            type="text"
+            placeholder="Buscar por símbolo o nombre..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="bg-white/5 border-white/10 text-white"
+          />
+        </CardContent>
+      </Card>
+
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="pt-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <Card className="bg-white/5 border-white/10">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400 mb-1">Total Acciones</p>
-                <p className="text-2xl font-bold text-white">{stocks.length}</p>
+                <p className="text-gray-400 text-sm mb-1">Total Acciones</p>
+                <h3 className="text-3xl font-bold text-white">{stocks.length}</h3>
               </div>
-              <TrendingUp className="w-8 h-8 text-primary-500" />
+              <TrendingUp className="w-8 h-8 text-cyan-400" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="bg-white/5 border-white/10">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400 mb-1">Activas</p>
-                <p className="text-2xl font-bold text-white">
+                <p className="text-gray-400 text-sm mb-1">Activas</p>
+                <h3 className="text-3xl font-bold text-green-400">
                   {stocks.filter(s => s.is_active).length}
-                </p>
+                </h3>
               </div>
-              <Power className="w-8 h-8 text-success-DEFAULT" />
+              <Power className="w-8 h-8 text-green-400" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="bg-white/5 border-white/10">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400 mb-1">Trading Habilitado</p>
-                <p className="text-2xl font-bold text-white">
-                  {stocks.filter(s => s.is_tradable).length}
-                </p>
+                <p className="text-gray-400 text-sm mb-1">Inactivas</p>
+                <h3 className="text-3xl font-bold text-red-400">
+                  {stocks.filter(s => !s.is_active).length}
+                </h3>
               </div>
-              <TrendingUp className="w-8 h-8 text-primary-500" />
+              <PowerOff className="w-8 h-8 text-red-400" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="bg-white/5 border-white/10">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-400 mb-1">Trading Deshabilitado</p>
-                <p className="text-2xl font-bold text-white">
-                  {stocks.filter(s => !s.is_tradable).length}
-                </p>
+                <p className="text-gray-400 text-sm mb-1">Volumen Total</p>
+                <h3 className="text-3xl font-bold text-purple-400">
+                  {(stocks.reduce((sum, s) => sum + (s.volume || 0), 0) / 1000000).toFixed(1)}M
+                </h3>
               </div>
-              <PowerOff className="w-8 h-8 text-danger-DEFAULT" />
+              <TrendingUp className="w-8 h-8 text-purple-400" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Search */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar por símbolo o nombre..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-900/50 border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Stocks Table */}
-      <Card>
+      {/* Table */}
+      <Card className="bg-white/5 border-white/10">
         <CardHeader>
-          <CardTitle>Acciones ({filteredStocks.length})</CardTitle>
+          <h2 className="text-xl font-bold text-white">Lista de Acciones</h2>
         </CardHeader>
         <CardContent>
-          {filteredStocks.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
-              <TrendingUp className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p>No se encontraron acciones</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="text-left text-sm text-gray-400 border-b border-gray-700">
-                    <th className="pb-3">Símbolo</th>
-                    <th className="pb-3">Nombre</th>
-                    <th className="pb-3">Precio</th>
-                    <th className="pb-3">Mercado</th>
-                    <th className="pb-3 text-center">Estado</th>
-                    <th className="pb-3 text-center">Trading</th>
-                    <th className="pb-3 text-right">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredStocks.map((stock) => (
-                    <tr key={stock.id} className="border-b border-gray-700/50 hover:bg-gray-700/20">
-                      <td className="py-4">
-                        <span className="font-bold text-white">{stock.symbol}</span>
-                      </td>
-                      <td className="py-4">
-                        <div>
-                          <p className="font-semibold text-white">{stock.name}</p>
-                          <p className="text-sm text-gray-400">{stock.company_name}</p>
-                        </div>
-                      </td>
-                      <td className="py-4 text-white font-semibold">
-                        {formatCurrency(stock.current_price)}
-                      </td>
-                      <td className="py-4 text-gray-400">{stock.market}</td>
-                      <td className="py-4 text-center">
-                        <button
-                          onClick={() => toggleActive(stock.id, stock.is_active)}
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition ${
-                            stock.is_active
-                              ? 'bg-success-DEFAULT/10 text-success-DEFAULT hover:bg-success-DEFAULT/20'
-                              : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                          }`}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="text-left py-3 px-4 text-gray-400 font-medium">Símbolo</th>
+                  <th className="text-left py-3 px-4 text-gray-400 font-medium">Nombre</th>
+                  <th className="text-left py-3 px-4 text-gray-400 font-medium">Precio</th>
+                  <th className="text-left py-3 px-4 text-gray-400 font-medium">Cambio 24h</th>
+                  <th className="text-left py-3 px-4 text-gray-400 font-medium">Disponibles</th>
+                  <th className="text-left py-3 px-4 text-gray-400 font-medium">Estado</th>
+                  <th className="text-left py-3 px-4 text-gray-400 font-medium">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredStocks.map((stock) => (
+                  <tr key={stock.id} className="border-b border-white/10 hover:bg-white/5">
+                    <td className="py-4 px-4">
+                      <span className="text-cyan-400 font-bold">{stock.symbol}</span>
+                    </td>
+                    <td className="py-4 px-4 text-white">{stock.name}</td>
+                    <td className="py-4 px-4 text-white">${stock.price?.toFixed(2)}</td>
+                    <td className="py-4 px-4">
+                      <span className={stock.change_24h >= 0 ? 'text-green-400' : 'text-red-400'}>
+                        {stock.change_24h >= 0 ? '+' : ''}{stock.change_24h?.toFixed(2)}%
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 text-white">{stock.available_quantity}</td>
+                    <td className="py-4 px-4">
+                      <Badge className={stock.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}>
+                        {stock.is_active ? 'Activa' : 'Inactiva'}
+                      </Badge>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleToggleActive(stock.id)}
+                          className="text-gray-400 hover:text-white"
                         >
                           {stock.is_active ? (
-                            <>
-                              <Power className="w-3 h-3 mr-1" />
-                              Activa
-                            </>
+                            <PowerOff className="w-4 h-4" />
                           ) : (
-                            <>
-                              <PowerOff className="w-3 h-3 mr-1" />
-                              Inactiva
-                            </>
+                            <Power className="w-4 h-4" />
                           )}
-                        </button>
-                      </td>
-                      <td className="py-4 text-center">
-                        <button
-                          onClick={() => toggleTradable(stock.id, stock.is_tradable)}
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition ${
-                            stock.is_tradable
-                              ? 'bg-primary-500/10 text-primary-500 hover:bg-primary-500/20'
-                              : 'bg-danger-DEFAULT/10 text-danger-DEFAULT hover:bg-danger-DEFAULT/20'
-                          }`}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-gray-400 hover:text-cyan-400"
                         >
-                          {stock.is_tradable ? (
-                            <>
-                              <TrendingUp className="w-3 h-3 mr-1" />
-                              Habilitado
-                            </>
-                          ) : (
-                            <>
-                              <PowerOff className="w-3 h-3 mr-1" />
-                              Deshabilitado
-                            </>
-                          )}
-                        </button>
-                      </td>
-                      <td className="py-4 text-right">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            className="p-2 text-gray-400 hover:text-primary-500 transition"
-                            title="Editar"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(stock.id)}
-                            className="p-2 text-gray-400 hover:text-danger-DEFAULT transition"
-                            title="Eliminar"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDelete(stock.id)}
+                          className="text-gray-400 hover:text-red-400"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {filteredStocks.length === 0 && (
+            <div className="text-center py-12 text-gray-400">
+              No se encontraron acciones
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Info Card */}
-      <Card className="bg-primary-500/10 border-primary-500/20">
-        <CardContent className="pt-6">
-          <div className="flex items-start space-x-3">
-            <TrendingUp className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-primary-200">
-              <p className="font-semibold mb-2">Control de Trading</p>
-              <ul className="space-y-1">
-                <li>• <strong>Estado Activo/Inactivo:</strong> Controla si la acción es visible en la plataforma</li>
-                <li>• <strong>Trading Habilitado/Deshabilitado:</strong> Controla si los usuarios pueden comprar/vender esta acción</li>
-                <li>• Las acciones deshabilitadas para trading no aparecerán en el mercado de usuarios</li>
-              </ul>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

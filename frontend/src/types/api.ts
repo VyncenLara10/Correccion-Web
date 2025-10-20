@@ -233,7 +233,3 @@ export const CHART_COLORS = {
 // FORMATO DE NÚMEROS Y FECHAS
 // ============================================
 
-export const NUMBER_FORMAT = {
-  CURRENCY: {
-    style: 'currency',
-    currency:

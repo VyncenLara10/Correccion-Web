@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card2'
 import {Button} from '@/components/ui/button2';
 import { formatCurrency, formatPercent, getChangeColor } from '@/lib/utils';
 import { Briefcase, TrendingUp, TrendingDown, DollarSign, PieChart, ArrowRight } from 'lucide-react';
-import api from '@/lib/api';
+import {getPortfolio, getPortfolioSummary} from '@/lib/api';
 import { toast } from 'sonner';
 import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -25,8 +25,8 @@ export default function PortfolioPage() {
     setIsLoading(true);
     try {
       const [portfolioData, summaryData] = await Promise.all([
-        api.getPortfolio(),
-        api.getPortfolioSummary(),
+        getPortfolio(),
+        getPortfolioSummary(),
       ]);
       setPortfolio(portfolioData.results || portfolioData);
       setSummary(summaryData);

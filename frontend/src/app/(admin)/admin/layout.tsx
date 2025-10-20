@@ -11,16 +11,16 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isLoading } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && (!user || user.role !== 'admin')) {
+    if (!loading && (!user || user.role !== 'admin')) {
       router.push('/dashboard');
     }
-  }, [user, isLoading, router]);
+  }, [user, loading, router]);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center">
         <div className="text-cyan-400 text-xl">Cargando...</div>

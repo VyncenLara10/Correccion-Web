@@ -20,7 +20,6 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
 
     try {
-      // CONECTA CON: POST /api/auth/forgot-password
       await forgotPassword(email);
       setIsSuccess(true);
     } catch (err: any) {

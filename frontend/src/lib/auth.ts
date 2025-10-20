@@ -9,19 +9,38 @@ const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE!;
 export async function verifyAuth0Token(token: string) {
   const secret = new TextEncoder().encode(process.env.AUTH0_CLIENT_SECRET);
   try {
+<<<<<<< Updated upstream
     const { payload } = await jwtVerify(token, secret, {
       issuer: `${AUTH0_DOMAIN}/`,
       audience: AUTH0_AUDIENCE,
     });
     return payload;
+=======
+    const { payload } = await jwtVerify(token, secret);
+
+    if (
+      typeof payload.userId === 'string' &&
+      typeof payload.email === 'string' &&
+      typeof payload.role === 'string'
+    ) {
+      return payload as unknown as JWTPayload;
+    }
+
+    return null;
+>>>>>>> Stashed changes
   } catch (error) {
     console.error("Token verification failed:", error);
     return null;
   }
 }
 
+<<<<<<< Updated upstream
 // Obtiene la sesión desde la cookie
 export async function getSession() {
+=======
+
+export async function getSession(): Promise<JWTPayload | null> {
+>>>>>>> Stashed changes
   const cookieStore = await cookies();
   const token = cookieStore.get("auth-token");
   if (!token) return null;
@@ -45,3 +64,16 @@ export async function requireAuth(request: NextRequest) {
 
   return payload;
 }
+<<<<<<< Updated upstream
+=======
+
+export function hashPassword(password: string): string {
+  // Este es solo un ejemplo simple
+  const crypto = require('crypto');
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+export function verifyPassword(password: string, hash: string): boolean {
+  return hashPassword(password) === hash;
+}
+>>>>>>> Stashed changes

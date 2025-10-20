@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server';
 
-// ESTE ARCHIVO ES OPCIONAL
-// Solo úsalo si quieres datos mock mientras no tienes backend
-
 export async function GET() {
-  // Mock data de acciones
   const mockStocks = [
     {
       id: '1',
@@ -76,7 +72,7 @@ export async function GET() {
   return NextResponse.json({ stocks: mockStocks });
 }
 
-// Si necesitas POST, PUT, DELETE, etc.
+
 export async function POST(request: Request) {
   const body = await request.json();
   

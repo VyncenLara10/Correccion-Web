@@ -1,322 +1,258 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card2';
-import { Button } from '@/components/ui/button2';
-import { formatCurrency, getChangeColor } from '@/lib/utils';
-import { TrendingUp, TrendingDown, AlertCircle, CheckCircle2, Info } from 'lucide-react';
-import api from '@/lib/api';
-import { toast } from 'sonner';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { Card, CardContent, CardHeader } from '@/components/ui/card2';
+import { Button } from '@/components/ui/button2';
+import { Input } from '@/components/ui/input';
+import { TrendingUp, TrendingDown, DollarSign, Calculator } from 'lucide-react';
 
-export default function TradePage() {
+function TradeForm() {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const { user, logout } = useAuth();
-  const [stock, setStock] = useState<any>(null);
-  const [quantity, setQuantity] = useState(1);
-  const [type, setType] = useState<'buy' | 'sell'>('buy');
-  const [isLoading, setIsLoading] = useState(false);
-  const [portfolio, setPortfolio] = useState<any>(null);
+  const { user } = useAuth();
+  
+  const stockSymbol = searchParams?.get('stock') || '';
+  const tradeType = searchParams?.get('type') as 'buy' | 'sell' || 'buy';
 
-  useEffect(() => {
-    const stockId = searchParams.get('stock');
-    const tradeType = searchParams.get('type') as 'buy' | 'sell';
-    
-    if (stockId) {
-      loadStock(stockId);
-    }
-    if (tradeType) {
-      setType(tradeType);
-    }
-  }, [searchParams]);
+  const [orderType, setOrderType] = useState<'market' | 'limit'>('market');
+  const [shares, setShares] = useState('');
+  const [limitPrice, setLimitPrice] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const loadStock = async (stockId: string) => {
+  // Mock stock data
+  const stockPrice = 150.25;
+  const totalCost = parseFloat(shares) * stockPrice;
+  const commission = totalCost * 0.01; // 1% commission
+  const finalAmount = totalCost + commission;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
     try {
-      const stockData = await api.getStock(stockId);
-      setStock(stockData);
+      // CONECTA CON: POST /api/trades
+      // await api.post('/trades', {
+      //   stock_symbol: stockSymbol,
+      //   type: tradeType,
+      //   order_type: orderType,
+      //   shares: parseFloat(shares),
+      //   limit_price: orderType === 'limit' ? parseFloat(limitPrice) : null
+      // });
+
+      console.log('Trade submitted:', { stockSymbol, tradeType, orderType, shares, limitPrice });
       
-      // Cargar posición en portafolio si existe
-      const portfolioData = await api.getPortfolio();
-      const position = portfolioData.results?.find((p: any) => p.stock.id === stockId) || 
-                      portfolioData.find((p: any) => p.stock.id === stockId);
-      setPortfolio(position);
+      // Reset form
+      setShares('');
+      setLimitPrice('');
     } catch (error) {
-      toast.error('Error al cargar la acción');
-    }
-  };
-
-  const handleTrade = async () => {
-    if (!stock) return;
-
-    if (quantity <= 0) {
-      toast.error('La cantidad debe ser mayor a 0');
-      return;
-    }
-
-    if (type === 'sell' && (!portfolio || quantity > portfolio.quantity)) {
-      toast.error('No tienes suficientes acciones para vender');
-      return;
-    }
-
-    const total = quantity * stock.current_price;
-    const commission = total * 0.005;
-    const finalAmount = type === 'buy' ? total + commission : total - commission;
-
-    if (type === 'buy' && user && finalAmount > user.balance) {
-      toast.error('Saldo insuficiente');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      await api.createTransaction({
-        stock_id: stock.id,
-        transaction_type: type,
-        quantity,
-      });
-
-      toast.success(
-        `${type === 'buy' ? 'Compra' : 'Venta'} realizada exitosamente`,
-        {
-          description: `${quantity} acciones de ${stock.symbol} por ${formatCurrency(finalAmount)}`,
-        }
-      );
-
-      await refreshUser();
-      router.push('/dashboard/portfolio');
-    } catch (error: any) {
-      const errorMsg = error.response?.data?.detail || error.response?.data?.non_field_errors?.[0] || 'Error al realizar la transacción';
-      toast.error(errorMsg);
+      console.error('Error submitting trade:', error);
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  if (!stock) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  if (!user) return null;
 
-  const total = quantity * stock.current_price;
-  const commission = total * 0.005;
-  const finalAmount = type === 'buy' ? total + commission : total - commission;
+  const userBalance = user.balance || 0;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">
-          {type === 'buy' ? 'Comprar' : 'Vender'} Acciones
+          {tradeType === 'buy' ? 'Comprar' : 'Vender'} Acciones
         </h1>
-        <p className="text-gray-400">Complete los detalles de su transacción</p>
+        <p className="text-gray-400">
+          {stockSymbol ? `${stockSymbol} - $${stockPrice.toFixed(2)}` : 'Selecciona una acción'}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Form */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-primary-500/10 rounded-lg flex items-center justify-center">
-                  <span className="text-lg font-bold text-primary-500">{stock.symbol.substring(0, 2)}</span>
-                </div>
-                <div>
-                  <CardTitle>{stock.symbol}</CardTitle>
-                  <p className="text-sm text-gray-400">{stock.name}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-white">{formatCurrency(stock.current_price)}</div>
-                <div className={`text-sm flex items-center justify-end ${getChangeColor(stock.change_percent)}`}>
-                  {stock.change_percent >= 0 ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
-                  {stock.change_percent >= 0 ? '+' : ''}{stock.change_percent.toFixed(2)}%
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Market Status */}
-            {!stock.is_market_open && (
-              <div className="flex items-center p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                <AlertCircle className="w-5 h-5 text-yellow-500 mr-3" />
-                <div className="text-sm text-yellow-500">
-                  El mercado está cerrado. Su orden se ejecutará cuando el mercado abra.
-                </div>
-              </div>
-            )}
-
-            {/* Trade Type Toggle */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-3">Tipo de Operación</label>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => setType('buy')}
-                  className={`p-4 rounded-lg border-2 transition ${
-                    type === 'buy'
-                      ? 'border-success-DEFAULT bg-success-DEFAULT/10'
-                      : 'border-gray-700 hover:border-gray-600'
-                  }`}
-                >
-                  <TrendingUp className={`w-6 h-6 mx-auto mb-2 ${type === 'buy' ? 'text-success-DEFAULT' : 'text-gray-400'}`} />
-                  <div className={`font-semibold ${type === 'buy' ? 'text-success-DEFAULT' : 'text-gray-400'}`}>
-                    Comprar
-                  </div>
-                </button>
-                <button
-                  onClick={() => setType('sell')}
-                  disabled={!portfolio || portfolio.quantity === 0}
-                  className={`p-4 rounded-lg border-2 transition disabled:opacity-50 disabled:cursor-not-allowed ${
-                    type === 'sell'
-                      ? 'border-danger-DEFAULT bg-danger-DEFAULT/10'
-                      : 'border-gray-700 hover:border-gray-600'
-                  }`}
-                >
-                  <TrendingDown className={`w-6 h-6 mx-auto mb-2 ${type === 'sell' ? 'text-danger-DEFAULT' : 'text-gray-400'}`} />
-                  <div className={`font-semibold ${type === 'sell' ? 'text-danger-DEFAULT' : 'text-gray-400'}`}>
-                    Vender
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* Quantity Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Cantidad de Acciones
-              </label>
-              <input
-                type="number"
-                min="1"
-                max={type === 'sell' && portfolio ? portfolio.quantity : undefined}
-                value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
-                className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-3 text-white text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-              {type === 'sell' && portfolio && (
-                <p className="mt-2 text-sm text-gray-400">
-                  Tienes {portfolio.quantity} acciones disponibles
-                </p>
-              )}
-            </div>
-
-            {/* Quick Amounts */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Cantidades Rápidas</label>
-              <div className="grid grid-cols-4 gap-2">
-                {[1, 5, 10, 25].map((amount) => (
+        {/* Trade Form */}
+        <div className="lg:col-span-2">
+          <Card className="bg-white/5 border-white/10">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-white">Orden de {tradeType === 'buy' ? 'Compra' : 'Venta'}</h2>
+                <div className="flex gap-2">
                   <button
-                    key={amount}
-                    onClick={() => setQuantity(amount)}
-                    disabled={type === 'sell' && portfolio && amount > portfolio.quantity}
-                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white font-medium transition"
+                    onClick={() => setOrderType('market')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      orderType === 'market'
+                        ? 'bg-cyan-500 text-white'
+                        : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                    }`}
                   >
-                    {amount}
+                    Mercado
                   </button>
-                ))}
+                  <button
+                    onClick={() => setOrderType('limit')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      orderType === 'limit'
+                        ? 'bg-cyan-500 text-white'
+                        : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                    }`}
+                  >
+                    Límite
+                  </button>
+                </div>
               </div>
-            </div>
+            </CardHeader>
 
-            {/* Submit Button */}
-            <Button
-              onClick={handleTrade}
-              isLoading={isLoading}
-              disabled={quantity <= 0 || !stock.is_market_open && type === 'buy'}
-              className="w-full py-4 text-lg"
-              variant={type === 'buy' ? 'primary' : 'danger'}
-            >
-              {type === 'buy' ? 'Comprar' : 'Vender'} {quantity} {quantity === 1 ? 'Acción' : 'Acciones'}
-            </Button>
-          </CardContent>
-        </Card>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Stock Symbol */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Símbolo
+                  </label>
+                  <Input
+                    type="text"
+                    value={stockSymbol}
+                    disabled
+                    className="bg-white/5 border-white/10 text-white disabled:opacity-50"
+                  />
+                </div>
+
+                {/* Number of Shares */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Cantidad de Acciones
+                  </label>
+                  <Input
+                    type="number"
+                    value={shares}
+                    onChange={(e) => setShares(e.target.value)}
+                    className="bg-white/5 border-white/10 text-white"
+                    placeholder="0"
+                    min="1"
+                    step="1"
+                    required
+                  />
+                </div>
+
+                {/* Limit Price (if limit order) */}
+                {orderType === 'limit' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Precio Límite
+                    </label>
+                    <Input
+                      type="number"
+                      value={limitPrice}
+                      onChange={(e) => setLimitPrice(e.target.value)}
+                      className="bg-white/5 border-white/10 text-white"
+                      placeholder="0.00"
+                      min="0.01"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+                )}
+
+                {/* Submit Button */}
+                <Button
+                  type="submit"
+                  disabled={!shares || isSubmitting || !stockSymbol}
+                  className={`w-full ${
+                    tradeType === 'buy'
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
+                      : 'bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600'
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Procesando...
+                    </>
+                  ) : (
+                    <>
+                      {tradeType === 'buy' ? (
+                        <TrendingUp className="w-4 h-4 mr-2" />
+                      ) : (
+                        <TrendingDown className="w-4 h-4 mr-2" />
+                      )}
+                      {tradeType === 'buy' ? 'Comprar' : 'Vender'} Acciones
+                    </>
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Order Summary */}
-        <div className="space-y-6">
-          <Card>
+        <div>
+          <Card className="bg-white/5 border-white/10 sticky top-6">
             <CardHeader>
-              <CardTitle>Resumen de Orden</CardTitle>
+              <h3 className="text-lg font-semibold text-white">Resumen de Orden</h3>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Precio por Acción</span>
-                <span className="text-white font-semibold">{formatCurrency(stock.current_price)}</span>
+              <div className="flex items-center justify-between py-2 border-b border-white/10">
+                <span className="text-gray-400">Precio por acción</span>
+                <span className="font-semibold text-white">${stockPrice.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Cantidad</span>
-                <span className="text-white font-semibold">{quantity}</span>
+
+              <div className="flex items-center justify-between py-2 border-b border-white/10">
+                <span className="text-gray-400">Acciones</span>
+                <span className="font-semibold text-white">{shares || 0}</span>
               </div>
-              <div className="flex justify-between text-sm">
+
+              <div className="flex items-center justify-between py-2 border-b border-white/10">
                 <span className="text-gray-400">Subtotal</span>
-                <span className="text-white font-semibold">{formatCurrency(total)}</span>
+                <span className="font-semibold text-white">
+                  ${isNaN(totalCost) ? '0.00' : totalCost.toFixed(2)}
+                </span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Comisión (0.5%)</span>
-                <span className="text-white font-semibold">{formatCurrency(commission)}</span>
-              </div>
-              <div className="pt-4 border-t border-gray-700">
-                <div className="flex justify-between">
-                  <span className="text-lg font-semibold text-white">Total</span>
-                  <span className={`text-xl font-bold ${type === 'buy' ? 'text-danger-DEFAULT' : 'text-success-DEFAULT'}`}>
-                    {type === 'buy' ? '-' : '+'}{formatCurrency(finalAmount)}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Account Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Tu Cuenta</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Balance Actual</span>
-                <span className="text-white font-semibold">{formatCurrency(user?.balance || 0)}</span>
+              <div className="flex items-center justify-between py-2 border-b border-white/10">
+                <span className="text-gray-400">Comisión (1%)</span>
+                <span className="font-semibold text-white">
+                  ${isNaN(commission) ? '0.00' : commission.toFixed(2)}
+                </span>
               </div>
-              {type === 'buy' && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Balance Después</span>
-                  <span className={`font-semibold ${
-                    (user?.balance || 0) - finalAmount >= 0 ? 'text-success-DEFAULT' : 'text-danger-DEFAULT'
-                  }`}>
-                    {formatCurrency((user?.balance || 0) - finalAmount)}
-                  </span>
-                </div>
-              )}
-              {type === 'sell' && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Balance Después</span>
-                  <span className="text-success-DEFAULT font-semibold">
-                    {formatCurrency((user?.balance || 0) + finalAmount)}
-                  </span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
-          {/* Info Card */}
-          <Card className="bg-primary-500/10 border-primary-500/20">
-            <CardContent className="pt-6">
-              <div className="flex items-start space-x-3">
-                <Info className="w-5 h-5 text-primary-500 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-primary-100">
-                  <p className="font-semibold mb-1">Información Importante</p>
-                  <ul className="space-y-1 text-primary-200">
-                    <li>• Las órdenes se ejecutan al precio actual del mercado</li>
-                    <li>• La comisión es del 0.5% por transacción</li>
-                    <li>• Las transacciones son irreversibles</li>
-                  </ul>
+              <div className="flex items-center justify-between py-3 bg-cyan-500/10 rounded-lg px-3">
+                <span className="text-cyan-400 font-semibold">Total</span>
+                <span className="font-bold text-cyan-400 text-xl">
+                  ${isNaN(finalAmount) ? '0.00' : finalAmount.toFixed(2)}
+                </span>
+              </div>
+
+              {/* Balance */}
+              <div className="pt-4 border-t border-white/10">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-400">Saldo disponible</span>
+                  <span className="font-semibold text-white">
+                    ${userBalance.toFixed(2)}
+                  </span>
                 </div>
+                
+                {shares && finalAmount > userBalance && (
+                  <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                    <p className="text-red-400 text-sm">
+                      Saldo insuficiente para completar esta orden
+                    </p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TradePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-white">Cargando...</div>
+      </div>
+    }>
+      <TradeForm />
+    </Suspense>
   );
 }

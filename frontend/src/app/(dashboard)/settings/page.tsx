@@ -221,7 +221,7 @@ export default function SettingsPage() {
               <p className="font-medium text-white">Cerrar Cuenta</p>
               <p className="text-sm text-gray-400">Eliminar permanentemente tu cuenta</p>
             </div>
-            <Button variant="danger">
+            <Button variant="destructive">
               Cerrar Cuenta
             </Button>
           </div>

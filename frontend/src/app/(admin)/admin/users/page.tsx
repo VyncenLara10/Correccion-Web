@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card2'
 import {Button} from '@/components/ui/button2';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { Users, Search, Filter, CheckCircle, XCircle, Clock } from 'lucide-react';
-import api from '@/lib/api';
+import {getUsers } from '@/lib/api';
 import { toast } from 'sonner';
 
 export default function AdminUsersPage() {
@@ -26,7 +26,7 @@ export default function AdminUsersPage() {
   const loadUsers = async () => {
     setIsLoading(true);
     try {
-      const data = await api.getUsers();
+      const data = await getUsers();
       setUsers(data.results || data);
     } catch (error) {
       toast.error('Error al cargar usuarios');
@@ -251,7 +251,6 @@ export default function AdminUsersPage() {
                           {user.status === 'active' && (
                             <Button
                               size="sm"
-                              variant="danger"
                               onClick={() => handleSuspend(user.id)}
                             >
                               Suspender

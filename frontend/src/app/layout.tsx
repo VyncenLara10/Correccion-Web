@@ -1,13 +1,14 @@
+import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { Auth0Provider } from '@/contexts/Auth0Provider';
 import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 
-export const metadata = {
-  title: 'TikalInvest - Plataforma de Trading de Acciones',
-  description: 'Invierte en el mercado de valores con TikalInvest. Compra y vende acciones con comisiones ultra bajas.',
-  keywords: 'trading, acciones, inversiones, bolsa, Guatemala, TikalInvest',
+export const metadata: Metadata = {
+  title: 'TikalInvest - Plataforma de Inversión',
+  description: 'Invierte inteligentemente con TikalInvest',
 };
 
 export default function RootLayout({
@@ -18,13 +19,10 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={inter.className}>
-        {children}
-        <Toaster 
-          position="top-right"
-          richColors
-          closeButton
-          theme="dark"
-        />
+        <Auth0Provider>
+          {children}
+          <Toaster position="top-right" richColors />
+        </Auth0Provider>
       </body>
     </html>
   );

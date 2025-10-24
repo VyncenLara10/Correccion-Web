@@ -22,6 +22,7 @@ export default function AdminStocksPage() {
     try {
       const data = await getStocks();
       setStocks(data.stocks || []);
+
     } catch (error) {
       console.error('Error al cargar acciones:', error);
     } finally {

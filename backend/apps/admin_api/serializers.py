@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from users.models import User
-from stocks.models import Stock
-from transactions.models import Transaction
+from apps.users.models import User
+from apps.stocks.models import Stock
+from apps.transactions.models import Transaction
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

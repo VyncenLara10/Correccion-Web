@@ -41,8 +41,8 @@ class Auth0JWTAuthentication(authentication.BaseAuthentication):
                 payload = jwt.decode(
                     token,
                     rsa_key,
-                    algorithms=settings.ALGORITHMS,
-                    audience=settings.API_IDENTIFIER,
+                    algorithms=settings.AUTH0_ALGORITHMS,
+                    audience=settings.AUTH0_API_AUDIENCE,
                     issuer=f"https://{settings.AUTH0_DOMAIN}/"
                 )
             else:
@@ -51,10 +51,61 @@ class Auth0JWTAuthentication(authentication.BaseAuthentication):
             raise exceptions.AuthenticationFailed("Token expired")
         except jwt.JWTClaimsError:
             raise exceptions.AuthenticationFailed("Incorrect claims")
-        except Exception:
-            raise exceptions.AuthenticationFailed("Unable to parse authentication token.")
+        except Exception as e:
+            raise exceptions.AuthenticationFailed(f"Unable to parse authentication token: {str(e)}")
 
-        user, _ = User.objects.get_or_create(username=payload["sub"], defaults={"email": payload.get("email","")})
+        # USAR TU MODELO USER PERSONALIZADO CORRECTAMENTE
+        auth0_id = payload["sub"]
+        email = payload.get("email", "")
+        name = payload.get("name", "")
+        email_verified = payload.get("email_verified", False)
+
+        try:
+            # Buscar usuario por auth0_id
+            user = User.objects.get(username=auth0_id)
+            
+            # Actualizar datos del usuario si es necesario
+            update_fields = []
+            if user.email != email:
+                user.email = email
+                update_fields.append('email')
+            
+            if name:
+                first_name = name.split(' ')[0] if name else ''
+                last_name = ' '.join(name.split(' ')[1:]) if name and len(name.split(' ')) > 1 else ''
+                
+                if user.first_name != first_name:
+                    user.first_name = first_name
+                    update_fields.append('first_name')
+                if user.last_name != last_name:
+                    user.last_name = last_name
+                    update_fields.append('last_name')
+            
+            if user.is_verified != email_verified:
+                user.is_verified = email_verified
+                update_fields.append('is_verified')
+            
+            if update_fields:
+                user.save(update_fields=update_fields)
+                
+        except User.DoesNotExist:
+            # Crear nuevo usuario con TU modelo personalizado
+            first_name = name.split(' ')[0] if name else ''
+            last_name = ' '.join(name.split(' ')[1:]) if name and len(name.split(' ')) > 1 else ''
+            
+            user = User(
+                username=auth0_id,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                is_verified=email_verified,
+                role="user",  # Valor por defecto
+                balance=10000.00,  # Balance inicial para trading
+                is_active=True
+            )
+            user.set_unusable_password()  # Importante para usuarios Auth0
+            user.save()  # El referral_code se genera automáticamente en save()
+
         # Guardamos el payload para usarlo después si queremos verificar roles
         user.auth0_payload = payload
         return (user, token)

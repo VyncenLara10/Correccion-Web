@@ -32,11 +32,11 @@ export default function LandingPage() {
               <Link href="/about" className="hover:text-primary-500 transition">
                 Nosotros
               </Link>
-              <Link href="/login" className="hover:text-primary-500 transition">
+              <Link href="/auth/login?returnTo=/dashboard" className="hover:text-primary-500 transition">
                 Iniciar Sesión
               </Link>
               <Link
-                href="/register"
+                href="/auth/login?returnTo=/dashboard"
                 className="bg-primary-500 hover:bg-primary-600 px-6 py-2 rounded-lg transition"
               >
                 Comenzar
@@ -64,7 +64,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/register"
+                href="/api/auth/login?returnTo=/dashboard"
                 className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-4 rounded-lg text-lg font-semibold transition flex items-center justify-center"
               >
                 Comenzar Ahora
@@ -190,7 +190,7 @@ export default function LandingPage() {
             Únete a miles de inversionistas que confían en TikalInvest
           </p>
           <Link
-            href="/register"
+            href="/auth/login?returnTo=/dashboard"
             className="inline-flex items-center bg-primary-500 hover:bg-primary-600 text-white px-10 py-4 rounded-lg text-lg font-semibold transition"
           >
             Crear Cuenta Gratis

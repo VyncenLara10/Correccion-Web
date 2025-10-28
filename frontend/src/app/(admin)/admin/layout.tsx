@@ -1,46 +1,73 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
-import { Sidebar } from '@/components/layout/sidebar';
-import { Navbar } from '@/components/layout/navbar';
+import { useUser } from '@auth0/nextjs-auth0/client';
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading } = useAuth();
+  const { user, error, isLoading } = useUser();
   const router = useRouter();
+  const [djangoUser, setDjangoUser] = useState<any>(null);
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
 
   useEffect(() => {
-    if (!loading && (!user || user.role !== 'admin')) {
-      router.push('/dashboard');
+    if (!isLoading) {
+      if (!user) {
+        // No autenticado, redirigir a login
+        window.location.href = '/auth/login?returnTo=/admin';
+      } else {
+        // Verificar si es admin
+        checkAdminAccess();
+      }
     }
-  }, [user, loading, router]);
+  }, [user, isLoading]);
 
-  if (loading) {
+  const checkAdminAccess = async () => {
+    try {
+      const response = await fetch('/auth/me');
+      if (response.ok) {
+        const data = await response.json();
+        setDjangoUser(data.user);
+        
+        // Verificar si es admin
+        if (data.user.role !== 'admin') {
+          router.push('/dashboard');
+        }
+      } else {
+        router.push('/dashboard');
+      }
+    } catch (error) {
+      console.error('Error verificando acceso admin:', error);
+      router.push('/dashboard');
+    } finally {
+      setCheckingAdmin(false);
+    }
+  };
+
+  // Loading state
+  if (isLoading || checkingAdmin) {
     return (
-      <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center">
-        <div className="text-cyan-400 text-xl">Cargando...</div>
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] to-[#1a1f3a] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-purple-400 text-xl">Verificando permisos...</p>
+        </div>
       </div>
     );
   }
 
-  if (!user || user.role !== 'admin') {
+  // Si no es admin, no mostrar nada (se está redirigiendo)
+  if (!user || !djangoUser || djangoUser.role !== 'admin') {
     return null;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] to-[#1a1f3a]">
-      <Navbar />
-      <div className="flex pt-16">
-        <Sidebar isAdmin={true} />
-        <main className="flex-1 ml-64 p-8">
-          {children}
-        </main>
-      </div>
+      {children}
     </div>
   );
 }

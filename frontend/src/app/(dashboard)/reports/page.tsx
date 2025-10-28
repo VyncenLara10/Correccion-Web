@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useUser } from '@auth0/nextjs-auth0';
 import { Card, CardContent, CardHeader } from '@/components/ui/card2';
 import { Button } from '@/components/ui/button2';
 import { FileText, Download, Calendar, Filter } from 'lucide-react';
@@ -10,7 +10,7 @@ type ReportType = 'transactions' | 'portfolio' | 'tax' | 'performance';
 type TimeRange = '1m' | '3m' | '6m' | '1y' | 'all';
 
 export default function ReportsPage() {
-  const { user } = useAuth();
+  const { user } = useUser();
   const [selectedReport, setSelectedReport] = useState<ReportType>('transactions');
   const [timeRange, setTimeRange] = useState<TimeRange>('1m');
   const [isGenerating, setIsGenerating] = useState(false);

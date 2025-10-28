@@ -129,7 +129,6 @@ export const ERROR_MESSAGES = {
 
 export const ROUTES = {
   HOME: '/',
-  LOGIN: '/login',
   REGISTER: '/register',
   DASHBOARD: '/dashboard',
   MARKET: '/market',

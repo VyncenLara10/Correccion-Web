@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useUser } from '@auth0/nextjs-auth0/client';
 import { 
   LayoutDashboard, 
   TrendingUp, 
@@ -15,9 +16,10 @@ import {
   Settings,
   BarChart3,
   Users,
-  Shield
+  Shield,
+  Star,
+  Bell
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 
 export default function DashboardLayout({
   children,
@@ -26,28 +28,46 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, loading, logout } = useAuth();
+  const { user, isLoading, error } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [balance, setBalance] = useState(10000.00);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
+    if (error) {
+      console.error('Auth error:', error);
+      router.push('/auth/login');
+      return;
     }
-  }, [user, loading, router]);
 
-  if (loading) {
+    if (!isLoading && !user) {
+      router.push('/auth/login');
+      return;
+    }
+  }, [user, isLoading, error, router]);
+
+  const handleLogout = () => {
+    window.location.href = '/api/auth/logout';
+  };
+
+  // Loading state
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center">
-        <div className="text-cyan-400 text-xl">Cargando...</div>
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] to-[#1a1f3a] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-cyan-400 text-xl">Cargando...</p>
+        </div>
       </div>
     );
   }
 
+  // Si no hay usuario después de cargar, no mostrar nada (se está redirigiendo)
   if (!user) {
     return null;
   }
 
-  const isAdmin = user.role === 'admin';
+  // Determinar si es admin
+  const isAdmin = user.role === 'admin' || user.email?.includes('admin');
 
   const userMenuItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -56,6 +76,7 @@ export default function DashboardLayout({
     { href: '/dashboard/trade', icon: TrendingUp, label: 'Trading' },
     { href: '/dashboard/wallet', icon: Wallet, label: 'Billetera' },
     { href: '/dashboard/transactions', icon: FileText, label: 'Transacciones' },
+    { href: '/dashboard/watchlist', icon: Star, label: 'Watchlist' },
     { href: '/dashboard/reports', icon: FileText, label: 'Reportes' },
   ];
 
@@ -68,11 +89,6 @@ export default function DashboardLayout({
 
   const menuItems = isAdmin ? [...userMenuItems, ...adminMenuItems] : userMenuItems;
 
-  const handleLogout = async () => {
-    await logout();
-    router.push('/login');
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] to-[#1a1f3a]">
       {/* Top Navbar */}
@@ -83,6 +99,7 @@ export default function DashboardLayout({
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="lg:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
+              aria-label="Toggle menu"
             >
               {sidebarOpen ? (
                 <X className="w-6 h-6 text-white" />
@@ -103,12 +120,33 @@ export default function DashboardLayout({
 
           {/* User Info */}
           <div className="flex items-center gap-4">
+            <button className="p-2 hover:bg-white/10 rounded-lg transition-colors relative">
+              <Bell className="w-5 h-5 text-gray-400" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+
             <div className="hidden md:flex flex-col items-end">
-              <p className="text-sm font-medium text-white">{user.name}</p>
+              <p className="text-sm font-medium text-white">
+                {user.name || user.email?.split('@')[0]}
+              </p>
               <p className="text-xs text-gray-400">{user.email}</p>
             </div>
             
             <div className="flex items-center gap-2">
+              {user.picture ? (
+                <img 
+                  src={user.picture} 
+                  alt={user.name || 'User'} 
+                  className="w-8 h-8 rounded-full border-2 border-cyan-500"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-teal-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">
+                    {(user.name || user.email || 'U')[0].toUpperCase()}
+                  </span>
+                </div>
+              )}
+              
               <Link
                 href="/dashboard/profile"
                 className="p-2 hover:bg-white/10 rounded-lg transition-colors"
@@ -118,9 +156,10 @@ export default function DashboardLayout({
               
               <button
                 onClick={handleLogout}
-                className="p-2 hover:bg-red-500/20 rounded-lg transition-colors"
+                className="p-2 hover:bg-red-500/20 rounded-lg transition-colors group"
+                title="Cerrar sesión"
               >
-                <LogOut className="w-5 h-5 text-red-400" />
+                <LogOut className="w-5 h-5 text-red-400 group-hover:text-red-300" />
               </button>
             </div>
           </div>
@@ -136,12 +175,26 @@ export default function DashboardLayout({
         `}
       >
         <div className="h-full overflow-y-auto p-4">
-          {/* Balance Card - Removido user.balance */}
+          {/* Balance Card */}
           <div className="mb-6 p-4 bg-gradient-to-br from-cyan-500/10 to-teal-500/5 rounded-lg border border-cyan-500/20">
-            <p className="text-sm text-gray-400">Saldo disponible</p>
-            <p className="text-lg font-bold text-cyan-400">
-              $10,000.00
+            <p className="text-sm text-gray-400 mb-1">Saldo disponible</p>
+            <p className="text-2xl font-bold text-cyan-400">
+              Q {balance.toFixed(2)}
             </p>
+            <div className="mt-3 flex gap-2">
+              <Link
+                href="/dashboard/wallet?action=deposit"
+                className="flex-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 text-xs font-medium py-2 px-3 rounded-lg transition text-center"
+              >
+                Depositar
+              </Link>
+              <Link
+                href="/dashboard/wallet?action=withdraw"
+                className="flex-1 bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-medium py-2 px-3 rounded-lg transition text-center"
+              >
+                Retirar
+              </Link>
+            </div>
           </div>
 
           {/* Menu Items */}
@@ -158,7 +211,7 @@ export default function DashboardLayout({
                   className={`
                     flex items-center gap-3 px-4 py-3 rounded-lg transition-all
                     ${isActive 
-                      ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/10 text-cyan-400 border border-cyan-500/30' 
+                      ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/10 text-cyan-400 border border-cyan-500/30 shadow-lg shadow-cyan-500/10' 
                       : 'text-gray-400 hover:bg-white/5 hover:text-white'
                     }
                   `}
@@ -181,6 +234,38 @@ export default function DashboardLayout({
               </div>
             </div>
           )}
+
+          {/* User Info Card */}
+          <div className="mt-6 p-4 bg-white/5 rounded-lg border border-white/10">
+            <div className="flex items-center gap-3 mb-3">
+              {user.picture ? (
+                <img 
+                  src={user.picture} 
+                  alt={user.name || 'User'} 
+                  className="w-10 h-10 rounded-full border-2 border-cyan-500"
+                />
+              ) : (
+                <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-teal-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold">
+                    {(user.name || user.email || 'U')[0].toUpperCase()}
+                  </span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white truncate">
+                  {user.name || 'Usuario'}
+                </p>
+                <p className="text-xs text-gray-400 truncate">{user.email}</p>
+              </div>
+            </div>
+            <Link
+              href="/dashboard/settings"
+              className="flex items-center justify-center gap-2 w-full bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-medium py-2 px-3 rounded-lg transition"
+            >
+              <Settings className="w-4 h-4" />
+              Configuración
+            </Link>
+          </div>
         </div>
       </aside>
 

@@ -1,440 +1,515 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card2';
-import {Button }from '@/components/ui/button2';
-import { formatCurrency, formatDateTime } from '@/lib/utils';
-import { Wallet, ArrowDownLeft, ArrowUpRight, History, CreditCard, Building2, AlertCircle } from 'lucide-react';
-import {getWalletTransactions, withdrawal, deposit} from '@/lib/api';
+import { useState, useEffect } from 'react';
+import { useUser } from '@auth0/nextjs-auth0/client';
+import { Card, CardContent, CardHeader } from '@/components/ui/card2';
+import { Button } from '@/components/ui/button2';
+import { Input } from '@/components/ui/input';
+import { 
+  Wallet, 
+  TrendingUp, 
+  TrendingDown, 
+  DollarSign, 
+  CreditCard,
+  ArrowUpRight,
+  ArrowDownRight,
+  Plus,
+  Minus,
+  History,
+  Download,
+  Upload
+} from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth} from '@/hooks/useAuth';
+
+interface Transaction {
+  id: string;
+  type: 'deposit' | 'withdrawal' | 'trade' | 'dividend';
+  amount: number;
+  description: string;
+  date: string;
+  status: 'completed' | 'pending' | 'failed';
+}
+
+interface WalletData {
+  balance: number;
+  available: number;
+  invested: number;
+  total_pl: number;
+  daily_change: number;
+  transactions: Transaction[];
+}
 
 export default function WalletPage() {
-  const searchParams = useSearchParams();
-  const { user, logout, refreshUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<'deposit' | 'withdrawal' | 'history'>('deposit');
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [loading, setIsLoading] = useState(false);
+  const { user, isLoading } = useUser();
+  const [walletData, setWalletData] = useState<WalletData>({
+    balance: 10000.00,
+    available: 7500.00,
+    invested: 2500.00,
+    total_pl: 500.75,
+    daily_change: 125.50,
+    transactions: [
+      {
+        id: '1',
+        type: 'deposit',
+        amount: 5000,
+        description: 'Depósito inicial',
+        date: '2024-01-15T10:30:00Z',
+        status: 'completed'
+      },
+      {
+        id: '2',
+        type: 'trade',
+        amount: -1500,
+        description: 'Compra AAPL',
+        date: '2024-01-16T14:20:00Z',
+        status: 'completed'
+      },
+      {
+        id: '3',
+        type: 'trade',
+        amount: -1000,
+        description: 'Compra MSFT',
+        date: '2024-01-17T11:15:00Z',
+        status: 'completed'
+      },
+      {
+        id: '4',
+        type: 'dividend',
+        amount: 25.75,
+        description: 'Dividendo AAPL',
+        date: '2024-01-18T09:00:00Z',
+        status: 'completed'
+      },
+      {
+        id: '5',
+        type: 'deposit',
+        amount: 2000,
+        description: 'Depósito adicional',
+        date: '2024-01-19T16:45:00Z',
+        status: 'pending'
+      }
+    ]
+  });
 
-  // Form states
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [amount, setAmount] = useState('');
-  const [bankName, setBankName] = useState('');
-  const [accountNumber, setAccountNumber] = useState('');
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
-  const action = searchParams?.get('action');
-  if (action === 'deposit' || action === 'withdrawal') {
-    setActiveTab(action);
-  }
-  loadTransactions();
-}, [searchParams]);
+    if (user) {
+      loadWalletData();
+    }
+  }, [user]);
 
-  const loadTransactions = async () => {
+  const loadWalletData = async () => {
     try {
-      const data = await getWalletTransactions({ limit: 10 });
-      setTransactions(data.results || data);
+      const tokenResponse = await fetch('/api/auth/token');
+      const tokenData = await tokenResponse.json();
+      
+      if (tokenData.accessToken) {
+        const walletResponse = await fetch('http://localhost:8000/api/wallet', {
+          headers: {
+            'Authorization': `Bearer ${tokenData.accessToken}`
+          }
+        });
+
+        if (walletResponse.ok) {
+          const data = await walletResponse.json();
+          setWalletData(data.wallet);
+        }
+      }
     } catch (error) {
-      console.error('Error loading transactions:', error);
+      console.error('Error loading wallet data:', error);
     }
   };
 
   const handleDeposit = async () => {
-    const numAmount = parseFloat(amount);
-    
-    if (!numAmount || numAmount < 10) {
-      toast.error('El monto mínimo de depósito es $10');
-      return;
-    }
-    
-    if (numAmount > 50000) {
-      toast.error('El monto máximo de depósito es $50,000');
+    if (!amount || parseFloat(amount) <= 0) {
+      toast.error('Ingresa un monto válido');
       return;
     }
 
-    if (!bankName) {
-      toast.error('Selecciona un banco');
-      return;
-    }
-
-    setIsLoading(true);
+    setProcessing(true);
     try {
-      await deposit({
-        amount: numAmount,
-        bank_name: bankName,
-        account_number: accountNumber,
-      });
+      // Simular procesamiento de depósito
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const depositAmount = parseFloat(amount);
+      setWalletData(prev => ({
+        ...prev,
+        balance: prev.balance + depositAmount,
+        available: prev.available + depositAmount,
+        transactions: [
+          {
+            id: Date.now().toString(),
+            type: 'deposit',
+            amount: depositAmount,
+            description: 'Depósito en línea',
+            date: new Date().toISOString(),
+            status: 'completed'
+          },
+          ...prev.transactions
+        ]
+      }));
 
-      toast.success('Depósito realizado exitosamente', {
-        description: `Se agregaron ${formatCurrency(numAmount)} a tu cuenta`,
-      });
-
+      toast.success(`Depósito de $${depositAmount} procesado exitosamente`);
+      setShowDepositModal(false);
       setAmount('');
-      setBankName('');
-      setAccountNumber('');
-      await refreshUser();
-      await loadTransactions();
-    } catch (error: any) {
-      const errorMsg = error.response?.data?.detail || 'Error al procesar el depósito';
-      toast.error(errorMsg);
+    } catch (error) {
+      toast.error('Error al procesar el depósito');
     } finally {
-      setIsLoading(false);
+      setProcessing(false);
     }
   };
 
   const handleWithdrawal = async () => {
-    const numAmount = parseFloat(amount);
-    
-    if (!numAmount || numAmount < 10) {
-      toast.error('El monto mínimo de retiro es $10');
+    if (!amount || parseFloat(amount) <= 0) {
+      toast.error('Ingresa un monto válido');
       return;
     }
 
-    const fee = numAmount * 0.02;
-    const total = numAmount + fee;
-
-   if (user?.balance !== undefined && total > user.balance) {
-      toast.error(`Saldo insuficiente. Necesitas ${formatCurrency(total)} (incluye comisión de ${formatCurrency(fee)})`);
+    const withdrawalAmount = parseFloat(amount);
+    if (withdrawalAmount > walletData.available) {
+      toast.error('Fondos insuficientes');
       return;
     }
 
-    if (!bankName || !accountNumber) {
-      toast.error('Completa todos los campos');
-      return;
-    }
-
-    setIsLoading(true);
+    setProcessing(true);
     try {
-      await withdrawal({
-        amount: numAmount,
-        bank_name: bankName,
-        account_number: accountNumber,
-      });
+      // Simular procesamiento de retiro
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      setWalletData(prev => ({
+        ...prev,
+        balance: prev.balance - withdrawalAmount,
+        available: prev.available - withdrawalAmount,
+        transactions: [
+          {
+            id: Date.now().toString(),
+            type: 'withdrawal',
+            amount: -withdrawalAmount,
+            description: 'Retiro a cuenta bancaria',
+            date: new Date().toISOString(),
+            status: 'pending'
+          },
+          ...prev.transactions
+        ]
+      }));
 
-      toast.success('Retiro realizado exitosamente', {
-        description: `Se retiraron ${formatCurrency(numAmount)} de tu cuenta`,
-      });
-
+      toast.success(`Retiro de $${withdrawalAmount} solicitado`);
+      setShowWithdrawModal(false);
       setAmount('');
-      setBankName('');
-      setAccountNumber('');
-      await refreshUser();
-      await loadTransactions();
-    } catch (error: any) {
-      const errorMsg = error.response?.data?.detail || 'Error al procesar el retiro';
-      toast.error(errorMsg);
+    } catch (error) {
+      toast.error('Error al procesar el retiro');
     } finally {
-      setIsLoading(false);
+      setProcessing(false);
     }
   };
 
-  const calculateFee = () => {
-    const numAmount = parseFloat(amount) || 0;
-    if (activeTab === 'deposit') {
-      return numAmount * 0.015; // 1.5%
-    }
-    return numAmount * 0.02; // 2%
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2
+    }).format(value);
   };
 
-  const getNetAmount = () => {
-    const numAmount = parseFloat(amount) || 0;
-    const fee = calculateFee();
-    if (activeTab === 'deposit') {
-      return numAmount - fee;
-    }
-    return numAmount;
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('es-GT', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Cargando billetera...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Wallet</h1>
-        <p className="text-gray-400">Gestiona tus fondos de inversión</p>
+        <h1 className="text-3xl font-bold text-white mb-2">Mi Billetera</h1>
+        <p className="text-gray-400">Gestiona tus fondos y transacciones</p>
       </div>
 
-      {/* Balance Card */}
-      <Card className="bg-gradient-to-br from-primary-500 to-primary-600">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-primary-100 mb-2">Balance Disponible</p>
-              <p className="text-4xl font-bold text-white">{formatCurrency(user?.balance || 0)}</p>
+      {/* Wallet Overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Balance Card */}
+        <Card className="bg-gradient-to-br from-cyan-500/10 to-teal-500/5 border-cyan-500/20 lg:col-span-2">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <p className="text-gray-400 text-sm">Saldo Total</p>
+                <p className="text-4xl font-bold text-white mt-2">
+                  {formatCurrency(walletData.balance)}
+                </p>
+              </div>
+              <div className="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center">
+                <Wallet className="w-8 h-8 text-cyan-400" />
+              </div>
             </div>
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-              <Wallet className="w-8 h-8 text-white" />
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-gray-400 text-sm">Disponible</p>
+                <p className="text-xl font-semibold text-white">
+                  {formatCurrency(walletData.available)}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-400 text-sm">Invertido</p>
+                <p className="text-xl font-semibold text-white">
+                  {formatCurrency(walletData.invested)}
+                </p>
+              </div>
             </div>
+
+            <div className="flex gap-3 mt-6">
+              <Button
+                onClick={() => setShowDepositModal(true)}
+                className="flex-1 bg-cyan-500 hover:bg-cyan-600"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Depositar
+              </Button>
+              <Button
+                onClick={() => setShowWithdrawModal(true)}
+                variant="outline"
+                className="flex-1 border-white/10 text-gray-300 hover:bg-white/10"
+              >
+                <Minus className="w-4 h-4 mr-2" />
+                Retirar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Stats Cards */}
+        <div className="space-y-6">
+          <Card className="bg-white/5 border-white/10">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-green-400" />
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Ganancias/Pérdidas</p>
+                  <p className={`text-lg font-semibold ${
+                    walletData.total_pl >= 0 ? 'text-green-400' : 'text-red-400'
+                  }`}>
+                    {walletData.total_pl >= 0 ? '+' : ''}{formatCurrency(walletData.total_pl)}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/5 border-white/10">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-gray-400 text-sm">Cambio Hoy</p>
+                  <p className={`text-lg font-semibold ${
+                    walletData.daily_change >= 0 ? 'text-green-400' : 'text-red-400'
+                  }`}>
+                    {walletData.daily_change >= 0 ? '+' : ''}{formatCurrency(walletData.daily_change)}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Recent Transactions */}
+      <Card className="bg-white/5 border-white/10">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <h2 className="text-xl font-semibold text-white">Transacciones Recientes</h2>
+          <Button variant="outline" className="border-white/10 text-gray-300 hover:bg-white/10">
+            <History className="w-4 h-4 mr-2" />
+            Ver Todas
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {walletData.transactions.map((transaction) => (
+              <div
+                key={transaction.id}
+                className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    transaction.type === 'deposit' ? 'bg-green-500/20' :
+                    transaction.type === 'withdrawal' ? 'bg-red-500/20' :
+                    transaction.type === 'dividend' ? 'bg-blue-500/20' :
+                    'bg-yellow-500/20'
+                  }`}>
+                    {transaction.type === 'deposit' && <Upload className="w-5 h-5 text-green-400" />}
+                    {transaction.type === 'withdrawal' && <Download className="w-5 h-5 text-red-400" />}
+                    {transaction.type === 'dividend' && <DollarSign className="w-5 h-5 text-blue-400" />}
+                    {transaction.type === 'trade' && <TrendingUp className="w-5 h-5 text-yellow-400" />}
+                  </div>
+                  <div>
+                    <p className="font-medium text-white">{transaction.description}</p>
+                    <p className="text-gray-400 text-sm">{formatDate(transaction.date)}</p>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <p className={`font-semibold ${
+                    transaction.amount > 0 ? 'text-green-400' : 'text-red-400'
+                  }`}>
+                    {transaction.amount > 0 ? '+' : ''}{formatCurrency(transaction.amount)}
+                  </p>
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                    transaction.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                    transaction.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                    'bg-red-500/20 text-red-400'
+                  }`}>
+                    {transaction.status === 'completed' ? 'Completado' :
+                     transaction.status === 'pending' ? 'Pendiente' : 'Fallido'}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Tabs */}
-      <div className="flex space-x-2">
-        {[
-          { key: 'deposit', label: 'Depositar', icon: ArrowDownLeft },
-          { key: 'withdrawal', label: 'Retirar', icon: ArrowUpRight },
-          { key: 'history', label: 'Historial', icon: History },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key as any)}
-            className={`flex items-center px-6 py-3 rounded-lg font-medium transition ${
-              activeTab === tab.key
-                ? 'bg-primary-500 text-white'
-                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-            }`}
-          >
-            <tab.icon className="w-5 h-5 mr-2" />
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Form */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>
-              {activeTab === 'deposit' ? 'Depositar Fondos' : activeTab === 'withdrawal' ? 'Retirar Fondos' : 'Historial de Transacciones'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {(activeTab === 'deposit' || activeTab === 'withdrawal') && (
-              <div className="space-y-6">
-                {/* Amount */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Monto {activeTab === 'deposit' ? 'a Depositar' : 'a Retirar'}
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">$</span>
-                    <input
-                      type="number"
-                      min="10"
-                      step="0.01"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      className="w-full bg-gray-900/50 border border-gray-700 rounded-lg pl-8 pr-4 py-3 text-white text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <p className="mt-2 text-sm text-gray-400">
-                    Monto mínimo: $10.00 {activeTab === 'deposit' && '• Monto máximo: $50,000.00'}
-                  </p>
-                </div>
-
-                {/* Quick Amounts */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Montos Rápidos</label>
-                  <div className="grid grid-cols-4 gap-3">
-                    {[50, 100, 500, 1000].map((value) => (
-                      <button
-                        key={value}
-                        onClick={() => setAmount(value.toString())}
-                        className="px-4 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-white font-medium transition"
-                      >
-                        ${value}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Bank Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Banco
-                  </label>
-                  <div className="relative">
-                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <select
-                      value={bankName}
-                      onChange={(e) => setBankName(e.target.value)}
-                      className="w-full bg-gray-900/50 border border-gray-700 rounded-lg pl-11 pr-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    >
-                      <option value="">Selecciona tu banco</option>
-                      <option value="Banco Industrial">Banco Industrial</option>
-                      <option value="Banrural">Banrural</option>
-                      <option value="BAM">BAM</option>
-                      <option value="Bantrab">Bantrab</option>
-                      <option value="BAC">BAC</option>
-                      <option value="Banco G&T Continental">Banco G&T Continental</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Account Number */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Número de Cuenta {activeTab === 'withdrawal' && <span className="text-red-400">*</span>}
-                  </label>
-                  <div className="relative">
-                    <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="text"
-                      value={accountNumber}
-                      onChange={(e) => setAccountNumber(e.target.value)}
-                      className="w-full bg-gray-900/50 border border-gray-700 rounded-lg pl-11 pr-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      placeholder="1234567890"
-                      required={activeTab === 'withdrawal'}
-                    />
-                  </div>
-                </div>
-
-                {/* Warning */}
-                {activeTab === 'withdrawal' && (
-                  <div className="flex items-start p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                    <AlertCircle className="w-5 h-5 text-yellow-500 mr-3 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm text-yellow-500">
-                      Los retiros son procesados en 1-3 días hábiles. Asegúrate de que la información bancaria sea correcta.
-                    </div>
-                  </div>
-                )}
-
-                {/* Submit Button */}
+      {/* Deposit Modal */}
+      {showDepositModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="bg-[#1a1f3a] border-white/20 max-w-md w-full">
+            <CardHeader>
+              <h3 className="text-xl font-semibold text-white">Depositar Fondos</h3>
+              <p className="text-gray-400">Ingresa el monto que deseas depositar</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Monto (USD)
+                </label>
+                <Input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0.00"
+                  className="bg-white/5 border-white/10 text-white text-lg"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
                 <Button
-  onClick={activeTab === 'deposit' ? handleDeposit : handleWithdrawal}
-  disabled={loading || !amount || !bankName || (activeTab === 'withdrawal' && !accountNumber)}
-  className="w-full py-4 text-lg flex items-center justify-center gap-2"
->
-  {loading && (
-    <svg
-      className="animate-spin h-5 w-5 text-white"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      ></circle>
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l3 3-3 3v-4a8 8 0 01-8-8z"
-      ></path>
-    </svg>
-  )}
-  {activeTab === 'deposit' ? 'Depositar' : 'Retirar'} Fondos
-</Button>
-
+                  onClick={() => setAmount('100')}
+                  variant="outline"
+                  className="border-white/10 text-gray-300 hover:bg-white/10"
+                >
+                  $100
+                </Button>
+                <Button
+                  onClick={() => setAmount('500')}
+                  variant="outline"
+                  className="border-white/10 text-gray-300 hover:bg-white/10"
+                >
+                  $500
+                </Button>
+                <Button
+                  onClick={() => setAmount('1000')}
+                  variant="outline"
+                  className="border-white/10 text-gray-300 hover:bg-white/10"
+                >
+                  $1,000
+                </Button>
+                <Button
+                  onClick={() => setAmount('5000')}
+                  variant="outline"
+                  className="border-white/10 text-gray-300 hover:bg-white/10"
+                >
+                  $5,000
+                </Button>
               </div>
-            )}
 
-            {/* History */}
-            {activeTab === 'history' && (
-              <div className="space-y-4">
-                {transactions.length === 0 ? (
-                  <div className="text-center py-12 text-gray-400">
-                    <History className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p>No hay transacciones aún</p>
-                  </div>
-                ) : (
-                  transactions.map((tx) => (
-                    <div
-                      key={tx.id}
-                      className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                          tx.transaction_type === 'deposit' || tx.transaction_type === 'referral_bonus'
-                            ? 'bg-success-DEFAULT/10'
-                            : 'bg-danger-DEFAULT/10'
-                        }`}>
-                          {tx.transaction_type === 'deposit' || tx.transaction_type === 'referral_bonus' ? (
-                            <ArrowDownLeft className="w-6 h-6 text-success-DEFAULT" />
-                          ) : (
-                            <ArrowUpRight className="w-6 h-6 text-danger-DEFAULT" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-white">
-                            {tx.transaction_type === 'deposit' && 'Depósito'}
-                            {tx.transaction_type === 'withdrawal' && 'Retiro'}
-                            {tx.transaction_type === 'referral_bonus' && 'Bono por Referido'}
-                            {tx.transaction_type === 'commission' && 'Comisión'}
-                          </p>
-                          <p className="text-sm text-gray-400">
-                            {tx.bank_name} • {formatDateTime(tx.created_at)}
-                          </p>
-                          {tx.transfer_reference && (
-                            <p className="text-xs text-gray-500">Ref: {tx.transfer_reference}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className={`text-lg font-bold ${
-                          tx.transaction_type === 'deposit' || tx.transaction_type === 'referral_bonus'
-                            ? 'text-success-DEFAULT'
-                            : 'text-danger-DEFAULT'
-                        }`}>
-                          {tx.transaction_type === 'deposit' || tx.transaction_type === 'referral_bonus' ? '+' : '-'}
-                          {formatCurrency(tx.amount)}
-                        </p>
-                        <p className="text-sm text-gray-400">
-                          Comisión: {formatCurrency(tx.fee)}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                )}
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={() => setShowDepositModal(false)}
+                  variant="outline"
+                  className="flex-1 border-white/10 text-gray-300 hover:bg-white/10"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleDeposit}
+                  disabled={processing || !amount}
+                  className="flex-1 bg-cyan-500 hover:bg-cyan-600"
+                >
+                  {processing ? 'Procesando...' : 'Depositar'}
+                </Button>
               </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Summary */}
-        <div className="space-y-6">
-          {(activeTab === 'deposit' || activeTab === 'withdrawal') && (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Resumen</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Monto</span>
-                    <span className="text-white font-semibold">{formatCurrency(parseFloat(amount) || 0)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">
-                      Comisión ({activeTab === 'deposit' ? '1.5%' : '2%'})
-                    </span>
-                    <span className="text-white font-semibold">{formatCurrency(calculateFee())}</span>
-                  </div>
-                  <div className="pt-4 border-t border-gray-700">
-                    <div className="flex justify-between">
-                      <span className="font-semibold text-white">
-                        {activeTab === 'deposit' ? 'Recibirás' : 'Total a Debitar'}
-                      </span>
-                      <span className={`text-xl font-bold ${
-                        activeTab === 'deposit' ? 'text-success-DEFAULT' : 'text-danger-DEFAULT'
-                      }`}>
-                        {formatCurrency(activeTab === 'deposit' ? getNetAmount() : (parseFloat(amount) || 0) + calculateFee())}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-primary-500/10 border-primary-500/20">
-                <CardContent className="pt-6">
-                  <h4 className="font-semibold text-primary-400 mb-3">Información</h4>
-                  <ul className="space-y-2 text-sm text-primary-200">
-                    <li>• Depósito mínimo: $10.00</li>
-                    <li>• Comisión de depósito: 1.5%</li>
-                    <li>• Comisión de retiro: 2%</li>
-                    <li>• Retiros procesados en 1-3 días</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </>
-          )}
+            </CardContent>
+          </Card>
         </div>
-      </div>
+      )}
+
+      {/* Withdrawal Modal */}
+      {showWithdrawModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="bg-[#1a1f3a] border-white/20 max-w-md w-full">
+            <CardHeader>
+              <h3 className="text-xl font-semibold text-white">Retirar Fondos</h3>
+              <p className="text-gray-400">Ingresa el monto que deseas retirar</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Monto (USD)
+                </label>
+                <Input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0.00"
+                  className="bg-white/5 border-white/10 text-white text-lg"
+                />
+                <p className="text-gray-400 text-sm mt-2">
+                  Disponible: {formatCurrency(walletData.available)}
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={() => setShowWithdrawModal(false)}
+                  variant="outline"
+                  className="flex-1 border-white/10 text-gray-300 hover:bg-white/10"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleWithdrawal}
+                  disabled={processing || !amount || parseFloat(amount) > walletData.available}
+                  className="flex-1 bg-cyan-500 hover:bg-cyan-600"
+                >
+                  {processing ? 'Procesando...' : 'Retirar'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

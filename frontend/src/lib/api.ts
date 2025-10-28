@@ -1,9 +1,5 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 
-// ============================================
-// CONFIGURACIÓN DE LA API
-// ============================================
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 const api: AxiosInstance = axios.create({
@@ -31,18 +27,6 @@ api.interceptors.request.use(
   }
 );
 
-api.interceptors.response.use(
-  (response) => response,
-  (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
-      }
-    }
-    return Promise.reject(error);
-  }
-);
 
 // ============================================
 // TIPOS DE DATOS
@@ -141,19 +125,9 @@ export interface StockCategory {
 // AUTENTICACIÓN
 // ============================================
 
-export const login = async (credentials: LoginCredentials) => {
+/* export const register = async (data: RegisterData) => {
   try {
-    const response = await api.post('/auth/login', credentials);
-    return response.data;
-  } catch (error) {
-    console.error('Error en login:', error);
-    throw error;
-  }
-};
-
-export const register = async (data: RegisterData) => {
-  try {
-    const response = await api.post('/auth/register', data);
+    const response = await api.post('/auth/login', data);
     return response.data;
   } catch (error) {
     console.error('Error en register:', error);
@@ -186,7 +160,7 @@ export const logout = async () => {
 
 export const forgotPassword = async (email: string) => {
   try {
-    const response = await api.post('/auth/forgot-password', { email });
+    const response = await api.post('/users/forgot-password', { email });
     return response.data;
   } catch (error) {
     console.error('Error en forgot password:', error);
@@ -196,14 +170,14 @@ export const forgotPassword = async (email: string) => {
 
 export const resetPassword = async (token: string, password: string) => {
   try {
-    const response = await api.post('/auth/reset-password', { token, password });
+    const response = await api.post('/users/reset-password', { token, password });
     return response.data;
   } catch (error) {
     console.error('Error en reset password:', error);
     throw error;
   }
 };
-
+ */
 // ============================================
 // ACCIONES (STOCKS) - COMPLETO
 // ============================================

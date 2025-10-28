@@ -1,17 +1,15 @@
 from django.urls import path
-from .views import StockListView, StockDetailView, StockCreateUpdateView, StockDeleteView
+from . import views
 
 urlpatterns = [
-    path("", StockListView.as_view(), name="stock_list"),
-    path("<int:pk>/", StockDetailView.as_view(), name="stock_detail"),
-    path("create/", StockCreateUpdateView.as_view(), name="stock_create"),
-    path("update/<int:pk>/", StockCreateUpdateView.as_view(), name="stock_update"),
-    path("delete/<int:pk>/", StockDeleteView.as_view(), name="stock_delete"),
-    path("categories/", StockCategoriesView.as_view()),
-    path("gainers/", StockGainersView.as_view()),
-    path("losers/", StockLosersView.as_view()),
-    path("trending/", StockTrendingView.as_view()),path("categories/", StockCategoriesView.as_view()),
-    path("gainers/", StockGainersView.as_view()),
-    path("losers/", StockLosersView.as_view()),
-    path("trending/", StockTrendingView.as_view()),
+    path('', views.StockListView.as_view(), name='stock-list'),
+    path('<str:symbol>/', views.StockDetailView.as_view(), name='stock-detail'),
+    path('<str:symbol>/history/', views.StockHistoryView.as_view(), name='stock-history'),
+    path('categories/', views.StockCategoriesView.as_view(), name='stock-categories'),
+    path('gainers/', views.StockGainersView.as_view(), name='stock-gainers'),
+    path('losers/', views.StockLosersView.as_view(), name='stock-losers'),
+    path('trending/', views.StockTrendingView.as_view(), name='stock-trending'),
+    path('admin/create/', views.StockCreateUpdateView.as_view(), name='stock-create'),
+    path('admin/<int:pk>/update/', views.StockCreateUpdateView.as_view(), name='stock-update'),
+    path('admin/<int:pk>/delete/', views.StockDeleteView.as_view(), name='stock-delete'),
 ]

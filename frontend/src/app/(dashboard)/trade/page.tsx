@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
+import { useUser } from '@auth0/nextjs-auth0';
 import { Card, CardContent, CardHeader } from '@/components/ui/card2';
 import { Button } from '@/components/ui/button2';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { TrendingUp, TrendingDown, DollarSign, Calculator } from 'lucide-react';
 
 function TradeForm() {
   const searchParams = useSearchParams();
-  const { user } = useAuth();
+  const { user } = useUser();
   
   const stockSymbol = searchParams?.get('stock') || '';
   const tradeType = searchParams?.get('type') as 'buy' | 'sell' || 'buy';

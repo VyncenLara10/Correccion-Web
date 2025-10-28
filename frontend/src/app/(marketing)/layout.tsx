@@ -22,7 +22,7 @@ export default function HomePage() {
           </p>
           
           <div className="flex gap-4 justify-center">
-            <Link href="/register">
+            <Link href="/auth/login">
               <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-lg px-8 py-6">
                 Comenzar Gratis
               </Button>
@@ -112,7 +112,7 @@ export default function HomePage() {
           <p className="text-xl text-gray-300 mb-8">
             Únete a miles de inversores que ya confían en TikalInvest
           </p>
-          <Link href="/register">
+          <Link href="/auth/login">
             <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-lg px-8 py-6">
               Crear Cuenta Gratis
             </Button>

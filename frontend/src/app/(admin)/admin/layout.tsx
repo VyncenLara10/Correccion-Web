@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
+import { useUser } from '@auth0/nextjs-auth0/client';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Navbar } from '@/components/layout/navbar';
 
@@ -11,16 +11,16 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useUser();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && (!user || user.role !== 'admin')) {
+    if (!isLoading  && (!user || user.role !== 'admin')) {
       router.push('/dashboard');
     }
-  }, [user, loading, router]);
+  }, [user, isLoading , router]);
 
-  if (loading) {
+  if (isLoading ) {
     return (
       <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center">
         <div className="text-cyan-400 text-xl">Cargando...</div>

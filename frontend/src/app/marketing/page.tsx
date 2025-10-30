@@ -7,6 +7,31 @@ import { TrendingUp, Shield, Zap, BarChart3 } from 'lucide-react';
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] to-[#1a1f3a]">
+      {/* Navbar Simple */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#1e293b]/95 backdrop-blur-sm border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Link href="/" className="flex items-center">
+              <span className="text-2xl font-bold text-cyan-400">Tikal</span>
+              <span className="text-2xl font-bold text-white">Invest</span>
+            </Link>
+
+            <div className="flex items-center gap-4">
+              <Link href="/auth/login">
+                <Button variant="ghost" className="text-white hover:text-cyan-400">
+                  Iniciar Sesión
+                </Button>
+              </Link>
+              <Link href="/auth/login">
+                <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600">
+                  Registrarse
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4">
         <div className="max-w-7xl mx-auto text-center">
@@ -22,14 +47,14 @@ export default function HomePage() {
           </p>
           
           <div className="flex gap-4 justify-center">
-            <Link href="/register">
+            <Link href="/auth/login">
               <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-lg px-8 py-6">
                 Comenzar Gratis
               </Button>
             </Link>
-            <Link href="/market">
+            <Link href="/auth/login">
               <Button variant="outline" className="text-lg px-8 py-6 border-cyan-500 text-cyan-400 hover:bg-cyan-500/10">
-                Ver Mercado
+                Iniciar Sesión
               </Button>
             </Link>
           </div>
@@ -112,7 +137,7 @@ export default function HomePage() {
           <p className="text-xl text-gray-300 mb-8">
             Únete a miles de inversores que ya confían en TikalInvest
           </p>
-          <Link href="/register">
+          <Link href="/auth/login">
             <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-lg px-8 py-6">
               Crear Cuenta Gratis
             </Button>
@@ -122,8 +147,24 @@ export default function HomePage() {
 
       {/* Simple Footer */}
       <footer className="py-8 px-4 border-t border-white/10">
-        <div className="max-w-7xl mx-auto text-center text-gray-400">
-          <p>&copy; 2025 TikalInvest. Todos los derechos reservados.</p>
+        <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+          <div className="text-gray-400">
+            <p>&copy; 2025 TikalInvest. Todos los derechos reservados.</p>
+          </div>
+          <div className="flex gap-6">
+            <Link href="/about" className="text-gray-400 hover:text-cyan-400">
+              Nosotros
+            </Link>
+            <Link href="/contact" className="text-gray-400 hover:text-cyan-400">
+              Contacto
+            </Link>
+            <Link href="/terms" className="text-gray-400 hover:text-cyan-400">
+              Términos
+            </Link>
+            <Link href="/privacy" className="text-gray-400 hover:text-cyan-400">
+              Privacidad
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

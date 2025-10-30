@@ -79,7 +79,7 @@ export default function FeaturesPage() {
 
           {/* CTA */}
           <div className="text-center mt-16">
-            <Link href="/register">
+            <Link href="/auth/login">
               <Button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-lg px-8 py-6">
                 Comenzar Ahora
               </Button>

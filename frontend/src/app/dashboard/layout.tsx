@@ -46,7 +46,7 @@ export default function DashboardLayout({
   }, [user, isLoading, error, router]);
 
   const handleLogout = () => {
-    window.location.href = '/api/auth/logout';
+    window.location.href = '/auth/logout';
   };
 
   // Loading state

@@ -1,4 +1,3 @@
-from django.db import models
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from apps.users.models import User
@@ -25,11 +24,10 @@ class AdminUserStatusView(generics.UpdateAPIView):
 
     def update(self, request, *args, **kwargs):
         user = self.get_object()
-        new_status = request.data.get("status")
-        if new_status not in ["active", "inactive"]:
+        status = request.data.get("status")
+        if status not in ["active", "inactive"]:
             return Response({"error": "Invalid status"}, status=status.HTTP_400_BAD_REQUEST)
-        user.is_active = new_status == "active"
-
+        user.is_active = status == "active"
         user.save()
         return Response({"message": "Status updated"})
 

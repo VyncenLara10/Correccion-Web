@@ -189,7 +189,7 @@ export default function MarketPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {stocks.map((stock) => (
-            <Link key={stock.id} href={`/market/${stock.symbol}`}>
+            <Link key={stock.id} href={`/dashboard/market/${stock.symbol}`}>
               <Card className="bg-white/5 border-white/10 hover:border-cyan-500 transition group cursor-pointer">
                 <CardContent className="pt-6">
                   <div className="flex items-start justify-between mb-4">
@@ -244,7 +244,7 @@ export default function MarketPage() {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          window.location.href = `/trade?stock=${stock.id}&type=buy`;
+                          window.location.href = `dashboard/trade?stock=${stock.id}&type=buy`;
                         }}
                       >
                         Comprar

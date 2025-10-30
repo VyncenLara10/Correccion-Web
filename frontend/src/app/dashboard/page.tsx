@@ -114,7 +114,7 @@ export default function DashboardPage() {
 
   const loadPortfolioData = async (token: string) => {
     try {
-      const portfolioResponse = await fetch('http://localhost:8000/api/portfolio', {
+      const portfolioResponse = await fetch('http://localhost:8000/api/dashboard/portfolio', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

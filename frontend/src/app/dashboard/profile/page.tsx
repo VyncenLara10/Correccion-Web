@@ -98,7 +98,7 @@ export default function ProfilePage() {
   };
 
   const handleLogout = () => {
-    window.location.href = '/api/auth/logout';
+    window.location.href = '/auth/logout';
   };
 
   if (isLoading) {
@@ -117,7 +117,7 @@ export default function ProfilePage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <p className="text-gray-400 mb-4">No hay usuario autenticado</p>
-          <Button onClick={() => window.location.href = '/api/auth/login'}>
+          <Button onClick={() => window.location.href = '/auth/login'}>
             Iniciar Sesión
           </Button>
         </div>

@@ -24,7 +24,7 @@ export default function AboutPage() {
               <Link href="/about" className="text-primary-500">
                 Nosotros
               </Link>
-              <Link href="/login" className="hover:text-primary-500 transition">
+              <Link href="/auth/login" className="hover:text-primary-500 transition">
                 Iniciar Sesión
               </Link>
             </div>
@@ -150,7 +150,7 @@ export default function AboutPage() {
             Únete a miles de inversionistas que confían en TikalInvest
           </p>
           <Link
-            href="/register"
+            href="/auth/login"
             className="inline-flex items-center bg-primary-500 hover:bg-primary-600 text-white px-10 py-4 rounded-lg text-lg font-semibold transition"
           >
             Crear Cuenta Gratis

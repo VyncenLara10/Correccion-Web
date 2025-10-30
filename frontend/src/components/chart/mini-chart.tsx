@@ -9,7 +9,6 @@ interface MiniChartProps {
 }
 
 export function MiniChart({ data, color = '#00d4ff', height = 40 }: MiniChartProps) {
-  // Convertir array de números a formato del gráfico
   const chartData = data.map((value, index) => ({
     value,
     index

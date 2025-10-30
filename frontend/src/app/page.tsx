@@ -64,7 +64,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/api/auth/login?returnTo=/dashboard"
+                href="/auth/login?returnTo=/dashboard"
                 className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-4 rounded-lg text-lg font-semibold transition flex items-center justify-center"
               >
                 Comenzar Ahora

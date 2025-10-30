@@ -20,6 +20,7 @@ import {
   Star,
   Bell
 } from 'lucide-react';
+import { getWalletBalance } from '@/lib/api';
 
 export default function DashboardLayout({
   children,
@@ -30,23 +31,36 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const { user, isLoading, error } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [balance, setBalance] = useState(10000.00);
+  const [balance, setBalance] = useState(0);
 
   useEffect(() => {
     if (error) {
       console.error('Auth error:', error);
-      router.push('/auth/login');
+      router.push('/api/auth/login');
       return;
     }
 
     if (!isLoading && !user) {
-      router.push('/auth/login');
+      router.push('/api/auth/login');
       return;
+    }
+    
+    if (user) {
+      loadBalance();
     }
   }, [user, isLoading, error, router]);
 
+  const loadBalance = async () => {
+    try {
+      const data = await getWalletBalance();
+      setBalance(data.balance || 0);
+    } catch (error) {
+      console.error('Error loading balance:', error);
+    }
+  };
+
   const handleLogout = () => {
-    window.location.href = '/auth/logout';
+    window.location.href = '/api/auth/logout';
   };
 
   // Loading state
@@ -78,6 +92,7 @@ export default function DashboardLayout({
     { href: '/dashboard/transactions', icon: FileText, label: 'Transacciones' },
     { href: '/dashboard/watchlist', icon: Star, label: 'Watchlist' },
     { href: '/dashboard/reports', icon: FileText, label: 'Reportes' },
+    { href: '/dashboard/referrals', icon: Users, label: 'Referidos' },
   ];
 
   const adminMenuItems = [
@@ -175,27 +190,6 @@ export default function DashboardLayout({
         `}
       >
         <div className="h-full overflow-y-auto p-4">
-          {/* Balance Card */}
-          <div className="mb-6 p-4 bg-gradient-to-br from-cyan-500/10 to-teal-500/5 rounded-lg border border-cyan-500/20">
-            <p className="text-sm text-gray-400 mb-1">Saldo disponible</p>
-            <p className="text-2xl font-bold text-cyan-400">
-              Q {balance.toFixed(2)}
-            </p>
-            <div className="mt-3 flex gap-2">
-              <Link
-                href="/dashboard/wallet?action=deposit"
-                className="flex-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 text-xs font-medium py-2 px-3 rounded-lg transition text-center"
-              >
-                Depositar
-              </Link>
-              <Link
-                href="/dashboard/wallet?action=withdraw"
-                className="flex-1 bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-medium py-2 px-3 rounded-lg transition text-center"
-              >
-                Retirar
-              </Link>
-            </div>
-          </div>
 
           {/* Menu Items */}
           <nav className="space-y-1">

@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import ReferralListView, ReferralStatsView
+from .views import referral_list, referral_stats
 
 urlpatterns = [
-    path("", ReferralListView.as_view()),
-    path("stats/", ReferralStatsView.as_view()),
+    path("", referral_list, name="referral_list"),
+    path("stats/", referral_stats, name="referral_stats"),
 ]

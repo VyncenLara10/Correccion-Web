@@ -10,9 +10,20 @@ import {
   DollarSign,
   ArrowUpRight,
   ArrowDownRight,
-  Users
+  Users,
+  Copy,
+  Check,
+  Share2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card2';
+import { Button } from '@/components/ui/button2';
+import { toast } from 'sonner';
+import { 
+  getDashboardStats,
+  getPortfolio,
+  getReferralStats,
+  getCurrentUser
+} from '@/lib/api';
 
 interface DjangoUser {
   id: number;
@@ -29,29 +40,38 @@ interface DjangoUser {
 interface Holding {
   symbol: string;
   name: string;
-  shares: number;
-  avg_price: number;
+  quantity: number;
+  average_buy_price: number;
   current_price: number;
-  value: number;
-  change_percent: number;
+  current_value: number;
+  profit_loss_percentage: number;
 }
 
-interface PortfolioData {
+interface PortfolioSummary {
   total_value: number;
   available_balance: number;
   invested_amount: number;
   daily_change: number;
   daily_change_percent: number;
-  total_pl: number;
+  total_profit_loss: number;
   holdings: Holding[];
+}
+
+interface ReferralStats {
+  total_referrals: number;
+  active_referrals: number;
+  total_earnings: number;
+  pending_earnings: number;
 }
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user: auth0User, error, isLoading } = useUser();
   const [djangoUser, setDjangoUser] = useState<DjangoUser | null>(null);
-  const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
-  const [loadingDjango, setLoadingDjango] = useState(false);
+  const [portfolioData, setPortfolioData] = useState<PortfolioSummary | null>(null);
+  const [referralStats, setReferralStats] = useState<ReferralStats | null>(null);
+  const [loadingData, setLoadingData] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   useEffect(() => {
     if (error) {
@@ -65,74 +85,83 @@ export default function DashboardPage() {
       return;
     }
 
-    if (auth0User && !djangoUser && !loadingDjango) {
-      verifyWithDjango();
+    if (auth0User && !djangoUser && !loadingData) {
+      loadDashboardData();
     }
-  }, [auth0User, isLoading, error, router, djangoUser, loadingDjango]);
+  }, [auth0User, isLoading, error, router, djangoUser, loadingData]);
 
-  const verifyWithDjango = async () => {
-    setLoadingDjango(true);
+  const loadDashboardData = async () => {
+    setLoadingData(true);
     try {
-      // Obtener token de acceso de Auth0
-      const tokenResponse = await fetch('/api/auth/token');
-      const tokenData = await tokenResponse.json();
-      
-      if (!tokenData.accessToken) {
-        throw new Error('No access token available');
+      // Cargar datos del usuario Django
+      const userData = await getCurrentUser();
+      setDjangoUser(userData.user || userData);
+
+      // Cargar portafolio y referidos en paralelo
+      const [portfolioResponse, referralsResponse] = await Promise.all([
+        getPortfolio().catch(() => null),
+        getReferralStats().catch(() => null)
+      ]);
+
+      if (portfolioResponse) {
+        // Construir resumen del portafolio
+        const holdings = portfolioResponse.results || portfolioResponse.holdings || [];
+        const summary = {
+          total_value: holdings.reduce((sum: number, h: any) => sum + parseFloat(h.current_value || 0), 0),
+          available_balance: userData.user?.balance || userData.balance || 0,
+          invested_amount: holdings.reduce((sum: number, h: any) => sum + (parseFloat(h.average_buy_price || 0) * parseFloat(h.quantity || 0)), 0),
+          daily_change: 0, // Calcular desde el backend si está disponible
+          daily_change_percent: 0,
+          total_profit_loss: holdings.reduce((sum: number, h: any) => sum + parseFloat(h.profit_loss || 0), 0),
+          holdings: holdings.map((h: any) => ({
+            symbol: h.stock?.symbol || h.symbol,
+            name: h.stock?.name || h.name,
+            quantity: h.quantity,
+            average_buy_price: h.average_buy_price,
+            current_price: h.stock?.current_price || h.current_price,
+            current_value: h.current_value,
+            profit_loss_percentage: h.profit_loss_percentage || 0
+          }))
+        };
+        setPortfolioData(summary);
       }
 
-      // Verificar/crear usuario en Django
-      const verifyResponse = await fetch('http://localhost:8000/api/auth/verify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${tokenData.accessToken}`
-        },
-        body: JSON.stringify({ 
-          email: auth0User!.email,
-          name: auth0User!.name,
-          sub: auth0User!.sub 
-        })
-      });
-
-      if (verifyResponse.ok) {
-        const verifyData = await verifyResponse.json();
-        setDjangoUser(verifyData.user);
-        
-        // Cargar datos del portfolio
-        await loadPortfolioData(tokenData.accessToken);
-      } else {
-        const errorData = await verifyResponse.json();
-        console.error('Error de Django:', errorData);
+      if (referralsResponse) {
+        setReferralStats(referralsResponse);
       }
+
     } catch (error) {
-      console.error('Error connecting to Django:', error);
+      console.error('Error loading dashboard data:', error);
+      toast.error('Error al cargar datos del dashboard');
     } finally {
-      setLoadingDjango(false);
+      setLoadingData(false);
     }
   };
 
-  const loadPortfolioData = async (token: string) => {
-    try {
-      const portfolioResponse = await fetch('http://localhost:8000/api/dashboard/portfolio', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (portfolioResponse.ok) {
-        const portfolioData = await portfolioResponse.json();
-        setPortfolioData(portfolioData.portfolio);
-      }
-    } catch (error) {
-      console.error('Error loading portfolio:', error);
+  const copyReferralCode = () => {
+    if (djangoUser?.referral_code) {
+      navigator.clipboard.writeText(djangoUser.referral_code);
+      setCopiedCode(true);
+      toast.success('Código copiado al portapapeles');
+      setTimeout(() => setCopiedCode(false), 2000);
     }
   };
 
-  if (isLoading || loadingDjango) {
+  const shareReferralLink = () => {
+    if (djangoUser?.referral_code) {
+      const referralLink = `${window.location.origin}/auth/register?ref=${djangoUser.referral_code}`;
+      navigator.clipboard.writeText(referralLink);
+      toast.success('Link de referido copiado');
+    }
+  };
+
+  if (isLoading || loadingData) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-white">Cargando dashboard...</div>
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white">Cargando dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -143,34 +172,6 @@ export default function DashboardPage() {
 
   const userName = djangoUser?.name || auth0User.name?.split(' ')[0] || 'Usuario';
   const userBalance = djangoUser?.balance || 0;
-  const portfolio = portfolioData || {
-    total_value: 12500.75,
-    available_balance: userBalance,
-    invested_amount: 7500.25,
-    daily_change: 125.50,
-    daily_change_percent: 1.02,
-    total_pl: 500.75,
-    holdings: [
-      {
-        symbol: 'AAPL',
-        name: 'Apple Inc.',
-        shares: 10,
-        avg_price: 150.25,
-        current_price: 155.50,
-        value: 1555.00,
-        change_percent: 3.5
-      },
-      {
-        symbol: 'MSFT',
-        name: 'Microsoft Corporation',
-        shares: 5,
-        avg_price: 300.75,
-        current_price: 315.25,
-        value: 1576.25,
-        change_percent: 4.8
-      }
-    ]
-  };
 
   return (
     <div className="space-y-6 p-6">
@@ -181,12 +182,12 @@ export default function DashboardPage() {
         </h1>
         <p className="text-gray-400">Dashboard de Trading - Tikal Invest</p>
         
-        {djangoUser ? (
+        {djangoUser && (
           <div className="mt-4 p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
-            <p className="text-green-400 flex items-center gap-2">
-              ✅ Conectado con Django 
+            <p className="text-green-400 flex items-center gap-2 mb-2">
+               Conectado con Django 
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2 text-sm">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
                 <span className="text-gray-400">Balance:</span>
                 <p className="text-white">${userBalance.toFixed(2)}</p>
@@ -207,12 +208,6 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-        ) : (
-          <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
-            <p className="text-yellow-400">
-              ⚠️ Autenticado con Auth0, conectando con Django...
-            </p>
-          </div>
         )}
       </div>
 
@@ -228,7 +223,7 @@ export default function DashboardPage() {
             </div>
             <p className="text-gray-400 text-sm mb-1">Saldo Disponible</p>
             <p className="text-2xl font-bold text-white">
-              ${portfolio.available_balance.toFixed(2)}
+              ${userBalance.toFixed(2)}
             </p>
           </CardContent>
         </Card>
@@ -243,12 +238,12 @@ export default function DashboardPage() {
             </div>
             <p className="text-gray-400 text-sm mb-1">Valor Total</p>
             <p className="text-2xl font-bold text-white">
-              ${portfolio.total_value.toFixed(2)}
+              ${portfolioData?.total_value.toFixed(2) || '0.00'}
             </p>
           </CardContent>
         </Card>
 
-        {/* Cambio Diario */}
+        {/* Monto Invertido */}
         <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
@@ -256,24 +251,10 @@ export default function DashboardPage() {
                 <Activity className="w-6 h-6 text-blue-400" />
               </div>
             </div>
-            <p className="text-gray-400 text-sm mb-1">Cambio Hoy</p>
-            <div className="flex items-center gap-2">
-              <p className={`text-2xl font-bold ${
-                portfolio.daily_change >= 0 ? 'text-green-400' : 'text-red-400'
-              }`}>
-                {portfolio.daily_change >= 0 ? '+' : ''}${portfolio.daily_change.toFixed(2)}
-              </p>
-              <span className={`flex items-center text-sm ${
-                portfolio.daily_change >= 0 ? 'text-green-400' : 'text-red-400'
-              }`}>
-                {portfolio.daily_change >= 0 ? (
-                  <ArrowUpRight className="w-4 h-4" />
-                ) : (
-                  <ArrowDownRight className="w-4 h-4" />
-                )}
-                {Math.abs(portfolio.daily_change_percent)}%
-              </span>
-            </div>
+            <p className="text-gray-400 text-sm mb-1">Invertido</p>
+            <p className="text-2xl font-bold text-white">
+              ${portfolioData?.invested_amount.toFixed(2) || '0.00'}
+            </p>
           </CardContent>
         </Card>
 
@@ -287,15 +268,16 @@ export default function DashboardPage() {
             </div>
             <p className="text-gray-400 text-sm mb-1">Total P&L</p>
             <p className={`text-2xl font-bold ${
-              portfolio.total_pl >= 0 ? 'text-green-400' : 'text-red-400'
+              (portfolioData?.total_profit_loss || 0) >= 0 ? 'text-green-400' : 'text-red-400'
             }`}>
-              {portfolio.total_pl >= 0 ? '+' : ''}${portfolio.total_pl.toFixed(2)}
+              {(portfolioData?.total_profit_loss || 0) >= 0 ? '+' : ''}$
+              {portfolioData?.total_profit_loss.toFixed(2) || '0.00'}
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Referral Section */}
+      {/* Referral Section - Mejorado */}
       {djangoUser && (
         <Card className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-blue-500/20">
           <CardContent className="p-6">
@@ -303,27 +285,85 @@ export default function DashboardPage() {
               <Users className="w-6 h-6 text-blue-400" />
               <h3 className="text-lg font-semibold text-white">Programa de Referidos</h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div>
-                <p className="text-gray-400 text-sm">Tu código de referido:</p>
-                <p className="text-xl font-bold text-white bg-white/10 px-3 py-2 rounded-lg inline-block mt-1">
-                  {djangoUser.referral_code}
-                </p>
+                <p className="text-gray-400 text-sm mb-2">Tu código de referido:</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xl font-bold text-white bg-white/10 px-4 py-2 rounded-lg flex-1">
+                    {djangoUser.referral_code}
+                  </p>
+                  <Button
+                    onClick={copyReferralCode}
+                    variant="outline"
+                    className="border-white/10 text-gray-300 hover:bg-white/10"
+                  >
+                    {copiedCode ? (
+                      <Check className="w-4 h-4 text-green-400" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
-              <div>
-                <p className="text-gray-400 text-sm">Beneficios:</p>
-                <p className="text-green-400 text-sm">$100 para tus amigos + $50 para ti</p>
-              </div>
+
+              {referralStats && (
+                <>
+                  <div>
+                    <p className="text-gray-400 text-sm mb-2">Referidos totales:</p>
+                    <p className="text-2xl font-bold text-white">{referralStats.total_referrals}</p>
+                    <p className="text-sm text-green-400">{referralStats.active_referrals} activos</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-sm mb-2">Ganancias por referidos:</p>
+                    <p className="text-2xl font-bold text-green-400">${referralStats.total_earnings.toFixed(2)}</p>
+                    <p className="text-sm text-gray-400">${referralStats.pending_earnings.toFixed(2)} pendientes</p>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                onClick={shareReferralLink}
+                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Compartir Link de Referido
+              </Button>
+              <Button
+                onClick={() => router.push('/dashboard/referrals')}
+                variant="outline"
+                className="border-white/10 text-gray-300 hover:bg-white/10"
+              >
+                Ver Mis Referidos
+              </Button>
+            </div>
+
+            <div className="mt-4 p-4 bg-white/5 rounded-lg">
+              <p className="text-sm text-gray-300">
+                <strong className="text-white">Beneficios:</strong> Gana $50 por cada amigo que se registre con tu código. 
+                Tu amigo recibe $100 de bono de bienvenida. ¡Es un win-win!
+              </p>
             </div>
           </CardContent>
         </Card>
       )}
 
       {/* Holdings Table */}
-      {portfolio.holdings.length > 0 && (
+      {portfolioData && portfolioData.holdings.length > 0 && (
         <Card className="bg-white/5 border-white/10">
           <CardHeader>
-            <h2 className="text-xl font-bold text-white">Tus Posiciones</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white">Tus Posiciones</h2>
+              <Button
+                onClick={() => router.push('/dashboard/portfolio')}
+                variant="outline"
+                className="border-white/10 text-gray-300 hover:bg-white/10"
+              >
+                Ver Todo
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -332,13 +372,13 @@ export default function DashboardPage() {
                   <tr className="border-b border-white/10">
                     <th className="text-left py-3 px-4 text-gray-400 font-medium">Símbolo</th>
                     <th className="text-left py-3 px-4 text-gray-400 font-medium">Nombre</th>
-                    <th className="text-right py-3 px-4 text-gray-400 font-medium">Acciones</th>
+                    <th className="text-right py-3 px-4 text-gray-400 font-medium">Cantidad</th>
                     <th className="text-right py-3 px-4 text-gray-400 font-medium">Valor</th>
                     <th className="text-right py-3 px-4 text-gray-400 font-medium">Cambio</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {portfolio.holdings.map((holding) => (
+                  {portfolioData.holdings.slice(0, 5).map((holding) => (
                     <tr 
                       key={holding.symbol}
                       className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer"
@@ -348,20 +388,21 @@ export default function DashboardPage() {
                         <span className="font-semibold text-white">{holding.symbol}</span>
                       </td>
                       <td className="py-4 px-4 text-gray-300">{holding.name}</td>
-                      <td className="py-4 px-4 text-right text-white">{holding.shares}</td>
+                      <td className="py-4 px-4 text-right text-white">{holding.quantity}</td>
                       <td className="py-4 px-4 text-right text-white">
-                        ${holding.value.toFixed(2)}
+                        ${holding.current_value.toFixed(2)}
                       </td>
                       <td className="py-4 px-4 text-right">
                         <span className={`flex items-center justify-end gap-1 ${
-                          holding.change_percent >= 0 ? 'text-green-400' : 'text-red-400'
+                          holding.profit_loss_percentage >= 0 ? 'text-green-400' : 'text-red-400'
                         }`}>
-                          {holding.change_percent >= 0 ? (
+                          {holding.profit_loss_percentage >= 0 ? (
                             <ArrowUpRight className="w-4 h-4" />
                           ) : (
                             <ArrowDownRight className="w-4 h-4" />
                           )}
-                          {Math.abs(holding.change_percent)}%
+                          {holding.profit_loss_percentage >= 0 ? '+' : ''}
+                          {holding.profit_loss_percentage.toFixed(2)}%
                         </span>
                       </td>
                     </tr>
@@ -399,12 +440,12 @@ export default function DashboardPage() {
 
         <Card 
           className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-500/20 hover:border-purple-500/40 transition-all cursor-pointer"
-          onClick={() => router.push('/dashboard/portfolio')}
+          onClick={() => router.push('/dashboard/wallet')}
         >
           <CardContent className="p-6 text-center">
             <Wallet className="w-8 h-8 text-purple-400 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-white mb-2">Mi Portafolio</h3>
-            <p className="text-gray-400 text-sm">Gestiona tus inversiones</p>
+            <h3 className="text-lg font-semibold text-white mb-2">Mi Billetera</h3>
+            <p className="text-gray-400 text-sm">Gestiona tus fondos</p>
           </CardContent>
         </Card>
       </div>

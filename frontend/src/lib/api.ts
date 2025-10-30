@@ -37,7 +37,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
-        window.location.href = '/login';
+        window.location.href = '/api/auth/login';
       }
     }
     return Promise.reject(error);
@@ -81,6 +81,22 @@ export interface User {
   created_at: string;
 }
 
+export interface DjangoUser {
+  id: number;
+  username: string;
+  email: string;
+  name: string;
+  role: string;
+  balance: number;
+  referral_code: string;
+  is_verified: boolean;
+  date_joined: string;
+  phone?: string;
+  address?: string;
+  country?: string;
+  auth0_id?: string;
+}
+
 export interface Stock {
   id: string;
   symbol: string;
@@ -105,30 +121,77 @@ export interface PortfolioItem {
   name: string;
   quantity: number;
   avg_price: number;
+  average_buy_price: number;
   current_price: number;
+  current_value: number;
   total_value: number;
   profit_loss: number;
   profit_loss_percent: number;
+  profit_loss_percentage: number;
+  stock?: {
+    id: string;
+    symbol: string;
+    name: string;
+    current_price: number;
+  };
 }
 
 export interface Transaction {
   id: string;
   type: 'buy' | 'sell' | 'deposit' | 'withdrawal';
+  transaction_type?: 'buy' | 'sell' | 'deposit' | 'withdrawal';
   stock_symbol?: string;
   quantity?: number;
   price?: number;
+  price_per_share?: number;
   total: number;
+  total_amount?: number;
+  commission?: number;
   status: 'completed' | 'pending' | 'failed';
   created_at: string;
+  stock_detail?: {
+    symbol: string;
+    name: string;
+  };
 }
 
 export interface Referral {
-  id: string;
-  name: string;
-  email: string;
-  status: 'active' | 'inactive';
-  earnings: number;
+  id: number;
+  referred_user: {
+    id: number;
+    name: string;
+    email: string;
+    username: string;
+  };
+  status: 'active' | 'inactive' | 'pending';
+  earnings_generated: number;
   created_at: string;
+  activated_at: string | null;
+}
+
+export interface ReferralStats {
+  total_referrals: number;
+  active_referrals: number;
+  pending_referrals?: number;
+  total_earnings: number;
+  pending_earnings: number;
+}
+
+export interface WalletData {
+  balance: number;
+  available_balance: number;
+  invested_amount: number;
+  total_profit_loss: number;
+  daily_change: number;
+}
+
+export interface WalletTransaction {
+  id: string;
+  type: 'deposit' | 'withdrawal' | 'buy' | 'sell';
+  amount: number;
+  description: string;
+  created_at: string;
+  status: 'completed' | 'pending' | 'failed';
 }
 
 export interface StockCategory {
@@ -317,17 +380,7 @@ export const getPortfolioSummary = async () => {
     const response = await api.get('/portfolio/summary');
     return response.data;
   } catch (error) {
-    console.error('Error al obtener resumen de portafolio:', error);
-    throw error;
-  }
-};
-
-export const getPortfolioStats = async () => {
-  try {
-    const response = await api.get('/portfolio/stats');
-    return response.data;
-  } catch (error) {
-    console.error('Error al obtener stats:', error);
+    console.error('Error al obtener resumen portafolio:', error);
     throw error;
   }
 };
@@ -346,42 +399,13 @@ export const getPortfolioHistory = async (period: string = '1M') => {
 // TRANSACCIONES
 // ============================================
 
-export const createTransaction = async (data: {
-  stock_id: string;
-  transaction_type: 'buy' | 'sell';
-  quantity: number;
-  price?: number;
+export const getTransactions = async (filters?: {
+  type?: string;
+  status?: string;
+  start_date?: string;
+  end_date?: string;
+  limit?: number;
 }) => {
-  try {
-    const response = await api.post('/transactions', data);
-    return response.data;
-  } catch (error) {
-    console.error('Error al crear transacción:', error);
-    throw error;
-  }
-};
-
-export const buyStock = async (stockId: string, quantity: number) => {
-  try {
-    const response = await api.post('/transactions/buy', { stock_id: stockId, quantity });
-    return response.data;
-  } catch (error) {
-    console.error('Error al comprar:', error);
-    throw error;
-  }
-};
-
-export const sellStock = async (stockId: string, quantity: number) => {
-  try {
-    const response = await api.post('/transactions/sell', { stock_id: stockId, quantity });
-    return response.data;
-  } catch (error) {
-    console.error('Error al vender:', error);
-    throw error;
-  }
-};
-
-export const getTransactions = async (filters?: Record<string, any>) => {
   try {
     const response = await api.get('/transactions', { params: filters });
     return response.data;
@@ -401,37 +425,77 @@ export const getTransactionById = async (id: string) => {
   }
 };
 
-export const getTransactionStats = async () => {
-  try {
-    const response = await api.get('/transactions/stats');
-    return response.data;
-  } catch (error) {
-    console.error('Error al obtener estadísticas de transacciones:', error);
-    throw error;
-  }
-};
-
-export const getAllTransactions = async (filters?: {
-  user_id?: string;
-  type?: string;
-  status?: string;
-  date_from?: string;
-  date_to?: string;
-  limit?: number;
-  offset?: number;
+export const buyStock = async (data: {
+  stock_id: string;
+  quantity: number;
+  price?: number;
 }) => {
   try {
-    const response = await api.get('/admin/transactions', { params: filters });
+    const response = await api.post('/transactions/buy', data);
     return response.data;
   } catch (error) {
-    console.error('Error al obtener transacciones admin:', error);
+    console.error('Error al comprar acción:', error);
+    throw error;
+  }
+};
+
+export const sellStock = async (data: {
+  stock_id: string;
+  quantity: number;
+  price?: number;
+}) => {
+  try {
+    const response = await api.post('/transactions/sell', data);
+    return response.data;
+  } catch (error) {
+    console.error('Error al vender acción:', error);
     throw error;
   }
 };
 
 // ============================================
-// WALLET (BILLETERA)
+// WALLET / BILLETERA - NUEVAS FUNCIONES
 // ============================================
+
+export const getWallet = async () => {
+  try {
+    const response = await api.get('/wallet');
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener billetera:', error);
+    throw error;
+  }
+};
+
+export const getWalletTransactions = async (params?: { limit?: number }) => {
+  try {
+    const response = await api.get('/wallet/transactions', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener transacciones de billetera:', error);
+    throw error;
+  }
+};
+
+export const depositFunds = async (amount: number) => {
+  try {
+    const response = await api.post('/wallet/deposit', { amount });
+    return response.data;
+  } catch (error) {
+    console.error('Error al depositar fondos:', error);
+    throw error;
+  }
+};
+
+export const withdrawFunds = async (amount: number) => {
+  try {
+    const response = await api.post('/wallet/withdrawal', { amount });
+    return response.data;
+  } catch (error) {
+    console.error('Error al retirar fondos:', error);
+    throw error;
+  }
+};
 
 export const getBalance = async () => {
   try {
@@ -443,48 +507,8 @@ export const getBalance = async () => {
   }
 };
 
-export const deposit = async (data: {
-  amount: number;
-  bank_name: string;
-  account_number: string;
-}) => {
-  try {
-    const response = await api.post('/wallet/deposit', data);
-    return response.data;
-  } catch (error) {
-    console.error('Error al depositar:', error);
-    throw error;
-  }
-};
-
-export const withdrawal = async (data: {
-  amount: number;
-  bank_name: string;
-  account_number: string;
-}) => {
-  try {
-    const response = await api.post('/wallet/withdrawal', data);
-    return response.data;
-  } catch (error) {
-    console.error('Error al retirar:', error);
-    throw error;
-  }
-};
-
-// Alias opcional
-export const withdraw = withdrawal;
-
-export const getWalletTransactions = async ({ limit = 10 }) => {
-  try {
-    const response = await api.get(`/wallet/history?limit=${limit}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error al obtener historial wallet:', error);
-    throw error;
-  }
-};
 // ============================================
-// REFERIDOS
+// REFERIDOS - NUEVAS FUNCIONES
 // ============================================
 
 export const getReferrals = async () => {
@@ -502,7 +526,27 @@ export const getReferralStats = async () => {
     const response = await api.get('/referrals/stats');
     return response.data;
   } catch (error) {
-    console.error('Error al obtener stats referidos:', error);
+    console.error('Error al obtener stats de referidos:', error);
+    throw error;
+  }
+};
+
+export const validateReferralCode = async (code: string) => {
+  try {
+    const response = await api.post('/referrals/validate', { code });
+    return response.data;
+  } catch (error) {
+    console.error('Error al validar código de referido:', error);
+    throw error;
+  }
+};
+
+export const getReferralCode = async () => {
+  try {
+    const response = await api.get('/referrals/my-code');
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener código de referido:', error);
     throw error;
   }
 };
@@ -535,7 +579,7 @@ export const getRecentActivity = async () => {
 // PERFIL
 // ============================================
 
-export const updateProfile = async (data: Partial<User>) => {
+export const updateProfile = async (data: Partial<DjangoUser>) => {
   try {
     const response = await api.put('/profile', data);
     return response.data;
@@ -798,6 +842,16 @@ export const generateUserReport = async () => {
     return response.data;
   } catch (error) {
     console.error('Error al generar reporte usuarios:', error);
+    throw error;
+  }
+};
+
+export const getWalletBalance = async () => {
+  try {
+    const response = await api.get('/wallet/balance');
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener balance:', error);
     throw error;
   }
 };

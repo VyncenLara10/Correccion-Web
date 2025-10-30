@@ -31,6 +31,7 @@ export function Sidebar({ isAdmin = false }: SidebarProps) {
     { name: 'Transacciones', href: '/transactions', icon: Receipt },
     { name: 'Reportes', href: '/reports', icon: FileText },
     { name: 'Watchlist', href: '/watchlist', icon: Star },
+    { name: 'Referidos', href: '/dashboard/referrals', icon: Users },
   ];
 
   const adminNavigation = [

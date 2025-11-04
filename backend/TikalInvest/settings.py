@@ -157,12 +157,7 @@ SIMPLE_JWT = {
 
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = [
-    'https://front.g1.atenea.lat',  # Tu frontend en producción
-    'https://back.g1.atenea.lat',
-    'http://localhost:5173',         # Frontend en desarrollo (Vite)
-    'http://localhost:3000',         # Alternativa desarrollo
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:3000',
+    'https://front.g1.atenea.lat'
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -198,7 +193,6 @@ CORS_ALLOW_HEADERS = [
 # CSRF Trusted Origins
 CSRF_TRUSTED_ORIGINS = [
     'https://front.g1.atenea.lat',
-    'https://back.g1.atenea.lat',
 ]
 
 

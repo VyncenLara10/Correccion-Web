@@ -175,6 +175,12 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
+# Para permitir cookies cross-origin
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True  # Solo en HTTPS
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
+
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',

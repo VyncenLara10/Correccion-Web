@@ -143,7 +143,6 @@ export default function App() {
   };
 
   const handleRegister = (data: { name: string; email: string; password: string; referralCode?: string }) => {
-    // Navigate to email verification instead of directly to dashboard
     setCurrentRoute('email-verification');
   };
 

@@ -3,7 +3,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { AnimatePresence } from 'motion/react';
 import { Toaster } from './components/ui/sonner';
 import { Header } from './components/layout/Header';
-import { Sidebar } from './components/layout/Sidebar';
+import { Sidebar } from './components/layout/Sidebar1';
 import { PageTransition } from './components/common/PageTransition';
 import { Landing } from './components/screens/Landing';
 import { Login } from './components/screens/Login';

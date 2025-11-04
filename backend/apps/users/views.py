@@ -90,16 +90,16 @@ class UserViewSet(viewsets.ModelViewSet):
             # Generar y enviar código de verificación
             email_service = ZerobounceSendEmailService()
             verification_code = email_service.generate_verification_code()
-            print(f"✅ Código generado: {verification_code}")
+            print(f"Código generado: {verification_code}")
             
             email_service.save_verification_code(user.email, verification_code)
-            print(f"✅ Código guardado en BD")
+            print(f"Código guardado en BD")
             
             email_result = email_service.send_verification_email(
                 user.email,
                 verification_code
             )
-            print(f"📧 Resultado del email: {email_result}")
+            print(f"Resultado del email: {email_result}")
             
             if not email_result['success']:
                 return Response(
@@ -269,7 +269,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
-    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    @action(detail=False, methods=['post', 'options'], permission_classes=[AllowAny])
     def login(self, request):
         """
         Endpoint para login de usuarios

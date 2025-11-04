@@ -67,7 +67,7 @@ export function Login({ onNavigate, onLogin }: LoginProps) {
       const data = await response.json();
 
       if (data.success) {
-        // Transformar datos del usuario para que tenga el nombre completo
+        // Transformar datos del usuario para que tenga el nombre completo 
         const userFromBackend = data.user;
         const userData = {
           ...userFromBackend,

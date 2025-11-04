@@ -198,6 +198,7 @@ CORS_ALLOW_HEADERS = [
 CSRF_TRUSTED_ORIGINS = [
     'https://front.g1.atenea.lat',
     'https://back-tikalinvest-66xmj03lp-vyncens-projects.vercel.app',
+    'https://proyecto-programacion-d9b67ow58-vyncens-projects.vercel.app',
 ]
 
 

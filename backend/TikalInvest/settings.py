@@ -12,7 +12,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-me-in-production')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = [
     'back-tikalinvest-66xmj03lp-vyncens-projects.vercel.app',
-    '.vercel.app',
+    'front.g1.atenea.lat',
     'localhost',
     '127.0.0.1',
 ]

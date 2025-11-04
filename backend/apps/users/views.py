@@ -279,7 +279,6 @@ class UserViewSet(viewsets.ModelViewSet):
             "password": "password123"
         }
         """
-        # 👇 Si la petición es preflight (OPTIONS), respondemos vacío con 200
         if request.method == "OPTIONS":
             return Response(status=status.HTTP_200_OK)
 

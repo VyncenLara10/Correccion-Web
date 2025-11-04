@@ -1,0 +1,931 @@
+@custom-variant dark (&:is(.dark *));
+
+/**
+ * ====================================
+ * TIKALINVEST DESIGN SYSTEM
+ * ====================================
+ * Sistema de diseño financiero profesional
+ * Paleta: Azules corporativos, neutrales grises/oscuros
+ * Variantes: Positivo (verde) / Negativo (rojo)
+ */
+
+:root {
+  /* ===== FOUNDATION ===== */
+  --font-size: 16px;
+  
+  /* ===== COLOR PALETTE ===== */
+  
+  /* Brand Colors - Azules Corporativos */
+  --brand-primary: #1e40af; /* Azul oscuro corporativo */
+  --brand-primary-hover: #1e3a8a;
+  --brand-primary-active: #1e3a8a;
+  --brand-primary-light: #dbeafe;
+  --brand-primary-foreground: #ffffff;
+  
+  --brand-secondary: #3b82f6; /* Azul brillante */
+  --brand-secondary-hover: #2563eb;
+  --brand-secondary-active: #1d4ed8;
+  --brand-secondary-light: #eff6ff;
+  --brand-secondary-foreground: #ffffff;
+  
+  /* Financial States - Ganancias/Pérdidas */
+  --financial-positive: #10b981; /* Verde ganancia */
+  --financial-positive-hover: #059669;
+  --financial-positive-light: #d1fae5;
+  --financial-positive-foreground: #ffffff;
+  
+  --financial-negative: #ef4444; /* Rojo pérdida */
+  --financial-negative-hover: #dc2626;
+  --financial-negative-light: #fee2e2;
+  --financial-negative-foreground: #ffffff;
+  
+  --financial-neutral: #6b7280; /* Gris neutral (sin cambio) */
+  --financial-neutral-light: #f3f4f6;
+  
+  /* Semantic Colors */
+  --success: #10b981;
+  --success-hover: #059669;
+  --success-light: #d1fae5;
+  --success-dark: #047857;
+  --success-foreground: #ffffff;
+  
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --danger-light: #fee2e2;
+  --danger-dark: #b91c1c;
+  --danger-foreground: #ffffff;
+  
+  --warning: #f59e0b;
+  --warning-hover: #d97706;
+  --warning-light: #fef3c7;
+  --warning-dark: #b45309;
+  --warning-foreground: #ffffff;
+  
+  --info: #06b6d4;
+  --info-hover: #0891b2;
+  --info-light: #cffafe;
+  --info-dark: #0e7490;
+  --info-foreground: #ffffff;
+  
+  /* Neutral Scale - Grises profesionales */
+  --neutral-0: #ffffff;
+  --neutral-50: #f8fafc;
+  --neutral-100: #f1f5f9;
+  --neutral-200: #e2e8f0;
+  --neutral-300: #cbd5e1;
+  --neutral-400: #94a3b8;
+  --neutral-500: #64748b;
+  --neutral-600: #475569;
+  --neutral-700: #334155;
+  --neutral-800: #1e293b;
+  --neutral-900: #0f172a;
+  --neutral-950: #020617;
+  
+  /* Background System */
+  --background: #ffffff;
+  --background-secondary: #f8fafc;
+  --background-tertiary: #f1f5f9;
+  --foreground: #0f172a;
+  --foreground-secondary: #334155;
+  --foreground-muted: #64748b;
+  
+  /* Surface Colors */
+  --surface: #ffffff;
+  --surface-hover: #f8fafc;
+  --surface-active: #f1f5f9;
+  --surface-raised: #ffffff;
+  --surface-overlay: rgba(15, 23, 42, 0.8);
+  
+  /* Card System */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --card-border: #e2e8f0;
+  --card-hover: #f8fafc;
+  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --card-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  
+  /* Border System */
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --border-subtle: #f1f5f9;
+  --border-focus: #3b82f6;
+  --border-error: #ef4444;
+  
+  /* Input System */
+  --input: transparent;
+  --input-background: #f8fafc;
+  --input-background-hover: #f1f5f9;
+  --input-background-focus: #ffffff;
+  --input-border: #e2e8f0;
+  --input-border-hover: #cbd5e1;
+  --input-border-focus: #3b82f6;
+  --input-placeholder: #94a3b8;
+  --input-foreground: #0f172a;
+  
+  /* Button System */
+  --button-primary-bg: #1e40af;
+  --button-primary-hover: #1e3a8a;
+  --button-primary-active: #1e3a8a;
+  --button-primary-foreground: #ffffff;
+  --button-primary-shadow: 0 1px 2px 0 rgba(30, 64, 175, 0.2);
+  
+  --button-secondary-bg: #3b82f6;
+  --button-secondary-hover: #2563eb;
+  --button-secondary-active: #1d4ed8;
+  --button-secondary-foreground: #ffffff;
+  
+  --button-ghost-hover: #f1f5f9;
+  --button-ghost-active: #e2e8f0;
+  --button-ghost-foreground: #334155;
+  
+  --button-outline-border: #e2e8f0;
+  --button-outline-hover: #f8fafc;
+  --button-outline-foreground: #334155;
+  
+  /* Component States */
+  --disabled-opacity: 0.5;
+  --disabled-cursor: not-allowed;
+  
+  /* Shadows */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  
+  /* ===== TYPOGRAPHY SYSTEM ===== */
+  
+  /* Font Families */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  
+  /* Font Weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Font Sizes - Escala tipográfica */
+  --text-xs: 0.75rem;     /* 12px */
+  --text-sm: 0.875rem;    /* 14px */
+  --text-base: 1rem;      /* 16px */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.25rem;     /* 20px */
+  --text-2xl: 1.5rem;     /* 24px */
+  --text-3xl: 1.875rem;   /* 30px */
+  --text-4xl: 2.25rem;    /* 36px */
+  --text-5xl: 3rem;       /* 48px */
+  --text-6xl: 3.75rem;    /* 60px */
+  
+  /* Line Heights */
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+  
+  /* Letter Spacing */
+  --tracking-tighter: -0.05em;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+  --tracking-widest: 0.1em;
+  
+  /* ===== SPACING SYSTEM ===== */
+  /* Escala de espaciado consistente */
+  --spacing-0: 0;
+  --spacing-1: 0.25rem;   /* 4px */
+  --spacing-2: 0.5rem;    /* 8px */
+  --spacing-3: 0.75rem;   /* 12px */
+  --spacing-4: 1rem;      /* 16px */
+  --spacing-5: 1.25rem;   /* 20px */
+  --spacing-6: 1.5rem;    /* 24px */
+  --spacing-8: 2rem;      /* 32px */
+  --spacing-10: 2.5rem;   /* 40px */
+  --spacing-12: 3rem;     /* 48px */
+  --spacing-16: 4rem;     /* 64px */
+  --spacing-20: 5rem;     /* 80px */
+  --spacing-24: 6rem;     /* 96px */
+  --spacing-32: 8rem;     /* 128px */
+  
+  /* ===== BORDER RADIUS ===== */
+  --radius-none: 0;
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-md: 0.375rem;  /* 6px */
+  --radius-lg: 0.5rem;    /* 8px */
+  --radius-xl: 0.75rem;   /* 12px */
+  --radius-2xl: 1rem;     /* 16px */
+  --radius-full: 9999px;
+  --radius: 0.5rem;       /* Default radius */
+  
+  /* ===== COMPONENT SIZES ===== */
+  
+  /* Button Heights */
+  --button-height-sm: 2rem;      /* 32px */
+  --button-height-md: 2.5rem;    /* 40px */
+  --button-height-lg: 3rem;      /* 48px */
+  --button-height-xl: 3.5rem;    /* 56px */
+  
+  /* Input Heights */
+  --input-height-sm: 2rem;       /* 32px */
+  --input-height-md: 2.5rem;     /* 40px */
+  --input-height-lg: 3rem;       /* 48px */
+  
+  /* Icon Sizes */
+  --icon-xs: 1rem;      /* 16px */
+  --icon-sm: 1.25rem;   /* 20px */
+  --icon-md: 1.5rem;    /* 24px */
+  --icon-lg: 2rem;      /* 32px */
+  --icon-xl: 2.5rem;    /* 40px */
+  
+  /* ===== TRANSITIONS ===== */
+  --transition-fast: 150ms;
+  --transition-base: 200ms;
+  --transition-slow: 300ms;
+  --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* ===== Z-INDEX SCALE ===== */
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-fixed: 1200;
+  --z-modal-backdrop: 1300;
+  --z-modal: 1400;
+  --z-popover: 1500;
+  --z-tooltip: 1600;
+  
+  /* ===== LEGACY SUPPORT (for existing components) ===== */
+  --primary: #1e40af;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #e2e8f0;
+  --accent-foreground: #0f172a;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --ring: #94a3b8;
+  --switch-background: #cbd5e1;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  
+  /* Charts */
+  --chart-1: #3b82f6;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #8b5cf6;
+  --chart-5: #ec4899;
+  
+  /* Sidebar */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #1e40af;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #334155;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #94a3b8;
+}
+
+/* ===== DARK MODE ===== */
+.dark {
+  /* Background System */
+  --background: #0f172a;
+  --background-secondary: #1e293b;
+  --background-tertiary: #334155;
+  --foreground: #f8fafc;
+  --foreground-secondary: #cbd5e1;
+  --foreground-muted: #94a3b8;
+  
+  /* Neutral Scale (inverted) */
+  --neutral-0: #0f172a;
+  --neutral-50: #1e293b;
+  --neutral-100: #334155;
+  --neutral-200: #475569;
+  --neutral-300: #64748b;
+  --neutral-400: #94a3b8;
+  --neutral-500: #cbd5e1;
+  --neutral-600: #e2e8f0;
+  --neutral-700: #f1f5f9;
+  --neutral-800: #f8fafc;
+  --neutral-900: #ffffff;
+  --neutral-950: #ffffff;
+  
+  /* Surface Colors */
+  --surface: #1e293b;
+  --surface-hover: #334155;
+  --surface-active: #475569;
+  --surface-raised: #1e293b;
+  --surface-overlay: rgba(0, 0, 0, 0.8);
+  
+  /* Card System */
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+  --card-border: #334155;
+  --card-hover: #334155;
+  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+  --card-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+  
+  /* Border System */
+  --border: #334155;
+  --border-strong: #475569;
+  --border-subtle: #1e293b;
+  --border-focus: #3b82f6;
+  --border-error: #ef4444;
+  
+  /* Input System */
+  --input: transparent;
+  --input-background: #1e293b;
+  --input-background-hover: #334155;
+  --input-background-focus: #1e293b;
+  --input-border: #334155;
+  --input-border-hover: #475569;
+  --input-border-focus: #3b82f6;
+  --input-placeholder: #64748b;
+  --input-foreground: #f8fafc;
+  
+  /* Button System */
+  --button-ghost-hover: #334155;
+  --button-ghost-active: #475569;
+  --button-ghost-foreground: #cbd5e1;
+  
+  --button-outline-border: #334155;
+  --button-outline-hover: #334155;
+  --button-outline-foreground: #cbd5e1;
+  
+  /* Legacy Support */
+  --primary: #f8fafc;
+  --primary-foreground: #334155;
+  --secondary: #334155;
+  --secondary-foreground: #f8fafc;
+  --muted: #334155;
+  --muted-foreground: #94a3b8;
+  --accent: #334155;
+  --accent-foreground: #f8fafc;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --ring: #64748b;
+  --popover: #1e293b;
+  --popover-foreground: #f8fafc;
+  
+  /* Charts (dark mode) */
+  --chart-1: #60a5fa;
+  --chart-2: #34d399;
+  --chart-3: #fbbf24;
+  --chart-4: #a78bfa;
+  --chart-5: #f472b6;
+  
+  /* Sidebar */
+  --sidebar: #0f172a;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #334155;
+  --sidebar-accent-foreground: #f8fafc;
+  --sidebar-border: #334155;
+  --sidebar-ring: #64748b;
+}
+
+/* ===== TAILWIND THEME MAPPING ===== */
+@theme inline {
+  /* Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  
+  /* Sidebar */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  
+  /* TikalInvest Brand Colors */
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-success: var(--success);
+  --color-success-light: var(--success-light);
+  --color-danger: var(--danger);
+  --color-danger-light: var(--danger-light);
+  --color-warning: var(--warning);
+  --color-warning-light: var(--warning-light);
+  --color-info: var(--info);
+  
+  /* Financial States */
+  --color-financial-positive: var(--financial-positive);
+  --color-financial-positive-light: var(--financial-positive-light);
+  --color-financial-negative: var(--financial-negative);
+  --color-financial-negative-light: var(--financial-negative-light);
+  --color-financial-neutral: var(--financial-neutral);
+  --color-financial-neutral-light: var(--financial-neutral-light);
+  
+  /* Neutral Scale */
+  --color-neutral-0: var(--neutral-0);
+  --color-neutral-50: var(--neutral-50);
+  --color-neutral-100: var(--neutral-100);
+  --color-neutral-200: var(--neutral-200);
+  --color-neutral-300: var(--neutral-300);
+  --color-neutral-400: var(--neutral-400);
+  --color-neutral-500: var(--neutral-500);
+  --color-neutral-600: var(--neutral-600);
+  --color-neutral-700: var(--neutral-700);
+  --color-neutral-800: var(--neutral-800);
+  --color-neutral-900: var(--neutral-900);
+  --color-neutral-950: var(--neutral-950);
+  
+  /* Border Radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ===== BASE STYLES ===== */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Remove default margins */
+  h1, h2, h3, h4, h5, h6, p, ul, ol {
+    margin: 0;
+  }
+}
+
+/**
+ * ====================================
+ * TYPOGRAPHY SYSTEM
+ * ====================================
+ * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
+ */
+@layer base {
+  :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
+    /* Headlines - Font weight medium, tight leading */
+    h1 {
+      font-size: var(--text-4xl);
+      font-weight: var(--font-weight-bold);
+      line-height: var(--leading-tight);
+      letter-spacing: var(--tracking-tight);
+      color: var(--foreground);
+    }
+
+    h2 {
+      font-size: var(--text-3xl);
+      font-weight: var(--font-weight-semibold);
+      line-height: var(--leading-tight);
+      letter-spacing: var(--tracking-tight);
+      color: var(--foreground);
+    }
+
+    h3 {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-weight-semibold);
+      line-height: var(--leading-snug);
+      color: var(--foreground);
+    }
+
+    h4 {
+      font-size: var(--text-xl);
+      font-weight: var(--font-weight-medium);
+      line-height: var(--leading-snug);
+      color: var(--foreground);
+    }
+    
+    h5 {
+      font-size: var(--text-lg);
+      font-weight: var(--font-weight-medium);
+      line-height: var(--leading-normal);
+      color: var(--foreground);
+    }
+    
+    h6 {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: var(--leading-normal);
+      color: var(--foreground);
+    }
+
+    /* Body Text - Normal weight, relaxed leading */
+    p {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: var(--leading-relaxed);
+      color: var(--foreground);
+    }
+    
+    /* Small text */
+    small {
+      font-size: var(--text-sm);
+      font-weight: var(--font-weight-normal);
+      line-height: var(--leading-normal);
+      color: var(--foreground-muted);
+    }
+
+    /* Form elements */
+    label {
+      font-size: var(--text-sm);
+      font-weight: var(--font-weight-medium);
+      line-height: var(--leading-normal);
+      color: var(--foreground);
+    }
+
+    button {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: var(--leading-normal);
+    }
+
+    input, textarea, select {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: var(--leading-normal);
+      color: var(--input-foreground);
+    }
+    
+    /* Code */
+    code, pre {
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+    }
+  }
+}
+
+/* ===== UTILITY CLASSES ===== */
+@layer utilities {
+  /* Financial States */
+  .text-financial-positive {
+    color: var(--financial-positive);
+  }
+  
+  .text-financial-negative {
+    color: var(--financial-negative);
+  }
+  
+  .text-financial-neutral {
+    color: var(--financial-neutral);
+  }
+  
+  .bg-financial-positive {
+    background-color: var(--financial-positive);
+  }
+  
+  .bg-financial-negative {
+    background-color: var(--financial-negative);
+  }
+  
+  .bg-financial-positive-light {
+    background-color: var(--financial-positive-light);
+  }
+  
+  .bg-financial-negative-light {
+    background-color: var(--financial-negative-light);
+  }
+  
+  /* Brand Colors */
+  .text-brand-primary {
+    color: var(--brand-primary);
+  }
+  
+  .text-brand-secondary {
+    color: var(--brand-secondary);
+  }
+  
+  .bg-brand-primary {
+    background-color: var(--brand-primary);
+  }
+  
+  .bg-brand-secondary {
+    background-color: var(--brand-secondary);
+  }
+  
+  /* Surface utilities */
+  .surface {
+    background-color: var(--surface);
+  }
+  
+  .surface-raised {
+    background-color: var(--surface-raised);
+    box-shadow: var(--shadow-md);
+  }
+  
+  /* Custom shadows */
+  .shadow-tikal-sm {
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .shadow-tikal-md {
+    box-shadow: var(--shadow-md);
+  }
+  
+  .shadow-tikal-lg {
+    box-shadow: var(--shadow-lg);
+  }
+  
+  /* Transitions */
+  .transition-tikal {
+    transition-property: all;
+    transition-timing-function: var(--transition-timing);
+    transition-duration: var(--transition-base);
+  }
+  
+  .transition-tikal-fast {
+    transition-property: all;
+    transition-timing-function: var(--transition-timing);
+    transition-duration: var(--transition-fast);
+  }
+}
+
+/* Root font size */
+html {
+  font-size: var(--font-size);
+}
+
+/**
+ * ====================================
+ * ACCESSIBILITY ENHANCEMENTS
+ * ====================================
+ * WCAG 2.1 Level AA compliance
+ */
+
+/* Focus Visible - Keyboard Navigation */
+@layer base {
+  /* Better focus indicators for keyboard navigation */
+  *:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+  
+  /* Remove default focus for mouse users */
+  *:focus:not(:focus-visible) {
+    outline: none;
+  }
+  
+  /* Skip to main content link (accessibility) */
+  .skip-to-main {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    background: var(--brand-primary);
+    color: var(--brand-primary-foreground);
+    padding: 0.75rem 1.5rem;
+    z-index: 9999;
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+  }
+  
+  .skip-to-main:focus {
+    top: 0;
+  }
+}
+
+/* Reduced Motion - Respect user preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/**
+ * ====================================
+ * TOUCH & MICROINTERACTIONS
+ * ====================================
+ * Enhanced UX for touch devices
+ */
+
+@layer utilities {
+  /* Minimum touch target size (WCAG 2.5.5) */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  /* Touch feedback - Active state */
+  .touch-feedback {
+    transition: transform 150ms ease-out, opacity 150ms ease-out;
+  }
+  
+  .touch-feedback:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+  
+  /* Ripple effect container */
+  .ripple-container {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .ripple-container::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: inherit;
+    transform: scale(0);
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  .ripple-container:active::after {
+    animation: ripple 0.6s ease-out;
+  }
+  
+  @keyframes ripple {
+    0% {
+      transform: scale(0);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+  }
+  
+  /* Hover states - Only for devices that support hover */
+  @media (hover: hover) and (pointer: fine) {
+    .hover-lift {
+      transition: transform 200ms ease-out, box-shadow 200ms ease-out;
+    }
+    
+    .hover-lift:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .hover-glow {
+      transition: box-shadow 200ms ease-out;
+    }
+    
+    .hover-glow:hover {
+      box-shadow: 0 0 0 3px var(--brand-primary-light);
+    }
+    
+    .hover-scale {
+      transition: transform 200ms ease-out;
+    }
+    
+    .hover-scale:hover {
+      transform: scale(1.02);
+    }
+  }
+  
+  /* Loading state */
+  .loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+  }
+  
+  .loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin-top: -10px;
+    margin-left: -10px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+/**
+ * ====================================
+ * RESPONSIVE UTILITIES
+ * ====================================
+ * Mobile-first responsive helpers
+ */
+
+@layer utilities {
+  /* Hide on mobile, show on desktop */
+  .mobile-hidden {
+    display: none;
+  }
+  
+  @media (min-width: 768px) {
+    .mobile-hidden {
+      display: block;
+    }
+  }
+  
+  /* Show on mobile, hide on desktop */
+  .desktop-hidden {
+    display: block;
+  }
+  
+  @media (min-width: 768px) {
+    .desktop-hidden {
+      display: none;
+    }
+  }
+  
+  /* Safe area padding for notched devices */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/**
+ * ====================================
+ * PRINT STYLES
+ * ====================================
+ * Clean print output
+ */
+
+@media print {
+  /* Hide non-essential elements */
+  .no-print,
+  nav,
+  aside,
+  .sidebar,
+  .floating-menu,
+  button:not(.print-button) {
+    display: none !important;
+  }
+  
+  /* Optimize for print */
+  body {
+    background: white;
+    color: black;
+  }
+  
+  /* Break inside avoidance */
+  .card,
+  .table-row {
+    page-break-inside: avoid;
+  }
+  
+  /* Show link URLs */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+}

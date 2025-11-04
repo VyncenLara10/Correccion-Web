@@ -1,15 +1,14 @@
-from django.urls import path
-from . import views
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import UserViewSet, PaymentMethodViewSet, UserBalanceViewSet, DepositTransactionViewSet, ReportRequestViewSet
+
+router = DefaultRouter()
+router.register(r'users', UserViewSet, basename='users')
+router.register(r'payment-methods', PaymentMethodViewSet, basename='payment-methods')
+router.register(r'balance', UserBalanceViewSet, basename='balance')
+router.register(r'deposits', DepositTransactionViewSet, basename='deposits')
+router.register(r'reports', ReportRequestViewSet, basename='reports')
 
 urlpatterns = [
-    path('', views.StockListView.as_view(), name='stock-list'),
-    path('<str:symbol>/', views.StockDetailView.as_view(), name='stock-detail'),
-    path('<str:symbol>/history/', views.StockHistoryView.as_view(), name='stock-history'),
-    path('categories/', views.StockCategoriesView.as_view(), name='stock-categories'),
-    path('gainers/', views.StockGainersView.as_view(), name='stock-gainers'),
-    path('losers/', views.StockLosersView.as_view(), name='stock-losers'),
-    path('trending/', views.StockTrendingView.as_view(), name='stock-trending'),
-    path('admin/create/', views.StockCreateUpdateView.as_view(), name='stock-create'),
-    path('admin/<int:pk>/update/', views.StockCreateUpdateView.as_view(), name='stock-update'),
-    path('admin/<int:pk>/delete/', views.StockDeleteView.as_view(), name='stock-delete'),
+    path('', include(router.urls)),
 ]

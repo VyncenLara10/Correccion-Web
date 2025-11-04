@@ -10,7 +10,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-me-in-production')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = [
+    'back-tikalinvest-66xmj03lp-vyncens-projects.vercel.app',
+    '.vercel.app',
+    'localhost',
+    '127.0.0.1',
+]
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -151,13 +157,19 @@ SIMPLE_JWT = {
 
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'http://127.0.0.1:3000',
+    'https://front.g1.atenea.lat',  # Tu frontend en producción
+    'http://localhost:5173',         # Frontend en desarrollo (Vite)
+    'http://localhost:3000',         # Alternativa desarrollo
     'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000',
 ]
 
-CORS_ALLOW_CREDENTIALS = True
+# CSRF Trusted Origins
+CSRF_TRUSTED_ORIGINS = [
+    'https://front.g1.atenea.lat',
+    'https://back-tikalinvest-66xmj03lp-vyncens-projects.vercel.app',
+]
+
 
 # Email Configuration (Gmail o tu servidor SMTP preferido)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

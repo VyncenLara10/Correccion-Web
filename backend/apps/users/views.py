@@ -273,40 +273,34 @@ class UserViewSet(viewsets.ModelViewSet):
     def login(self, request):
         """
         Endpoint para login de usuarios
-        
         POST /api/users/login/
         {
             "email": "user@example.com",
             "password": "password123"
         }
         """
+        # 👇 Si la petición es preflight (OPTIONS), respondemos vacío con 200
+        if request.method == "OPTIONS":
+            return Response(status=status.HTTP_200_OK)
+
         email = request.data.get('email')
         password = request.data.get('password')
         
         if not email or not password:
             return Response(
-                {
-                    'success': False,
-                    'message': 'Email y contraseña requeridos'
-                },
+                {'success': False, 'message': 'Email y contraseña requeridos'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
         try:
-            # Buscar usuario por email
             user = User.objects.get(email=email)
             
-            # Verificar contraseña
             if not user.check_password(password):
                 return Response(
-                    {
-                        'success': False,
-                        'message': 'Credenciales inválidas'
-                    },
+                    {'success': False, 'message': 'Credenciales inválidas'},
                     status=status.HTTP_401_UNAUTHORIZED
                 )
             
-            # Verificar que el email esté verificado
             if not user.email_verified:
                 return Response(
                     {
@@ -317,17 +311,12 @@ class UserViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_403_FORBIDDEN
                 )
             
-            # Verificar estado del usuario
             if user.status != 'active':
                 return Response(
-                    {
-                        'success': False,
-                        'message': f'Tu cuenta está {user.status}'
-                    },
+                    {'success': False, 'message': f'Tu cuenta está {user.status}'},
                     status=status.HTTP_403_FORBIDDEN
                 )
             
-            # Generar tokens
             refresh = RefreshToken.for_user(user)
             
             return Response(
@@ -345,19 +334,13 @@ class UserViewSet(viewsets.ModelViewSet):
             
         except User.DoesNotExist:
             return Response(
-                {
-                    'success': False,
-                    'message': 'Credenciales inválidas'
-                },
+                {'success': False, 'message': 'Credenciales inválidas'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
         except Exception as e:
             logger.error(f"Error al iniciar sesión: {str(e)}")
             return Response(
-                {
-                    'success': False,
-                    'message': 'Error al iniciar sesión'
-                },
+                {'success': False, 'message': 'Error al iniciar sesión'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
